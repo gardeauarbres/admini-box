@@ -339,12 +339,16 @@ export function useCreateDocument() {
       );
 
       // 2. Create Metadata in DB
+      // Exclure 'size' car il n'est pas (encore) défini dans le schéma de la base de données Appwrite
+      // et provoque une erreur 400.
+      const { size, ...cleanMetadata } = metadata as any;
+
       return await databases.createDocument(
         'adminibox_db',
         'documents',
         ID.unique(),
         {
-          ...metadata,
+          ...cleanMetadata,
           fileId: storageResponse.$id,
           userId,
         },
