@@ -1,0 +1,70 @@
+﻿app/login/page.tsx(67,33): error TS1117: An object literal cannot have multiple properties with the same name.
+app/login/page.tsx(90,33): error TS1117: An object literal cannot have multiple properties with the same name.
+app/page.tsx(343,17): error TS1117: An object literal cannot have multiple properties with the same name.
+app/register/page.tsx(70,33): error TS1117: An object literal cannot have multiple properties with the same name.
+app/register/page.tsx(93,33): error TS1117: An object literal cannot have multiple properties with the same name.
+app/register/page.tsx(116,33): error TS1117: An object literal cannot have multiple properties with the same name.
+components/ActiveSessions.tsx(4,19): error TS2305: Module '"@/lib/appwrite"' has no exported member 'Models'.
+components/ActivityStats.tsx(23,62): error TS2339: Property '$createdAt' does not exist on type 'Organism'.
+components/ActivityStats.tsx(45,51): error TS2339: Property '$createdAt' does not exist on type 'Organism'.
+components/AnalyticsDashboard.tsx(100,31): error TS2339: Property '$createdAt' does not exist on type 'Organism'.
+components/AnalyticsDashboard.tsx(215,57): error TS18048: 'percent' is possibly 'undefined'.
+components/AvatarUpload.tsx(75,90): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/DataExport.tsx(50,26): error TS2339: Property '$createdAt' does not exist on type 'Organism'.
+components/DataExport.tsx(97,44): error TS2339: Property '$createdAt' does not exist on type 'Organism'.
+components/FinancialCharts.tsx(163,62): error TS18048: 'percent' is possibly 'undefined'.
+components/NetworkStatus.tsx(17,91): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/NetworkStatus.tsx(26,81): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/OrganismCard.tsx(230,37): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismCard.tsx(251,37): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismCard.tsx(270,37): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismCard.tsx(294,37): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismForm.tsx(87,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismForm.tsx(111,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismForm.tsx(141,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/OrganismTags.tsx(101,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/PersonalProfileForm.tsx(27,5): error TS2322: Type 'Resolver<{ firstName: string; lastName: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; language?: string | undefined; timezone?: string | undefined; address?: { ...; } | undefined; }, any, { ...; }>' is not assignable to type 'Resolver<{ firstName: string; lastName: string; language: string; timezone: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; address?: { street?: string | undefined; city?: string | undefined; postalCode?: string | undefined; country?: string | undefined; } | undefined; }...'.
+  Types of parameters 'options' and 'options' are incompatible.
+    Type 'ResolverOptions<{ firstName: string; lastName: string; language: string; timezone: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; address?: { street?: string | undefined; city?: string | undefined; postalCode?: string | undefined; country?: string | undefined; } | undef...' is not assignable to type 'ResolverOptions<{ firstName: string; lastName: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; language?: string | undefined; timezone?: string | undefined; address?: { ...; } | undefined; }>'.
+      Type 'string | undefined' is not assignable to type 'string'.
+        Type 'undefined' is not assignable to type 'string'.
+components/PersonalProfileForm.tsx(115,34): error TS2345: Argument of type '(data: PersonalProfileFormData) => Promise<void>' is not assignable to parameter of type 'SubmitHandler<TFieldValues>'.
+  Types of parameters 'data' and 'data' are incompatible.
+    Type 'TFieldValues' is not assignable to type '{ firstName: string; lastName: string; language: string; timezone: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; address?: { street?: string | undefined; city?: string | undefined; postalCode?: string | undefined; country?: string | undefined; } | undefined; }'.
+      Type 'FieldValues' is missing the following properties from type '{ firstName: string; lastName: string; language: string; timezone: string; birthDate?: string | undefined; phone?: string | undefined; bio?: string | undefined; address?: { street?: string | undefined; city?: string | undefined; postalCode?: string | undefined; country?: string | undefined; } | undefined; }': firstName, lastName, language, timezone
+components/ProfessionalProfileForm.tsx(90,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; status?: "" | ... 5 more ... | undefined; jobDescription?: string | undefined; professionalAddress?: { ...; } | u...' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+components/ProfessionalProfileForm.tsx(98,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; ... 6 more ...; timezone: string; }' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+components/SimpleEditor.tsx(28,74): error TS2345: Argument of type 'null' is not assignable to parameter of type '{ title: string; content: string; }'.
+components/SimpleEditor.tsx(264,44): error TS2345: Argument of type '"error" | "warning" | "success"' is not assignable to parameter of type '"error" | "success" | "info"'.
+  Type '"warning"' is not assignable to type '"error" | "success" | "info"'.
+components/TransactionForm.tsx(72,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/TransactionForm.tsx(96,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/TransactionForm.tsx(117,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/TransactionForm.tsx(141,15): error TS1117: An object literal cannot have multiple properties with the same name.
+components/TransactionForm.tsx(169,15): error TS1117: An object literal cannot have multiple properties with the same name.
+hooks/useIntelligentAutoSave.ts(26,26): error TS2554: Expected 1 arguments, but got 0.
+hooks/useIntelligentAutoSave.ts(27,26): error TS2554: Expected 1 arguments, but got 0.
+lib/ai-editor-cache.ts(69,50): error TS2304: Cannot find name 'entry'.
+lib/queries.ts(248,14): error TS2352: Conversion of type 'AppwriteDocument<Transaction>[]' to type 'Transaction[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'AppwriteDocument<Transaction>' is missing the following properties from type 'Transaction': date, label, amount, category, and 2 more.
+lib/queries.ts(307,14): error TS2352: Conversion of type 'AppwriteDocument<FileItem>[]' to type 'FileItem[]' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Type 'AppwriteDocument<FileItem>' is missing the following properties from type 'FileItem': name, date, organism, type, and 3 more.
+lib/queries.ts(578,23): error TS2339: Property 'getBucket' does not exist on type 'Storage'.
+lib/validations.ts(12,13): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: readonly ["ok", "warning", "urgent"], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(entries: Readonly<Record<string, EnumValue>>, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'Readonly<Record<string, EnumValue>>'.
+      Index signature for type 'string' is missing in type 'string[]'.
+lib/validations.ts(45,11): error TS2769: No overload matches this call.
+  Overload 1 of 2, '(values: readonly ["income", "expense"], params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Object literal may only specify known properties, and 'errorMap' does not exist in type '{ error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; }'.
+  Overload 2 of 2, '(entries: Readonly<Record<string, EnumValue>>, params?: string | { error?: string | $ZodErrorMap<$ZodIssueInvalidValue<unknown>> | undefined; message?: string | undefined; } | undefined): ZodEnum<...>', gave the following error.
+    Argument of type 'string[]' is not assignable to parameter of type 'Readonly<Record<string, EnumValue>>'.
+      Index signature for type 'string' is missing in type 'string[]'.

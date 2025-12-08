@@ -1,0 +1,10 @@
+﻿components/AnalyticsDashboard.tsx(215,57): error TS18048: 'percent' is possibly 'undefined'.
+components/FinancialCharts.tsx(163,62): error TS18048: 'percent' is possibly 'undefined'.
+components/ProfessionalProfileForm.tsx(90,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; status?: "" | ... 5 more ... | undefined; jobDescription?: string | undefined; professionalAddress?: { ...; } | u...' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+components/ProfessionalProfileForm.tsx(98,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; ... 6 more ...; timezone: string; }' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.

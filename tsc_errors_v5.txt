@@ -1,0 +1,16 @@
+﻿components/AnalyticsDashboard.tsx(215,57): error TS18048: 'percent' is possibly 'undefined'.
+components/AvatarUpload.tsx(75,90): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/FinancialCharts.tsx(163,62): error TS18048: 'percent' is possibly 'undefined'.
+components/NetworkStatus.tsx(17,91): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/NetworkStatus.tsx(26,81): error TS2345: Argument of type '"warning"' is not assignable to parameter of type '"error" | "success" | "info"'.
+components/ProfessionalProfileForm.tsx(90,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; status?: "" | ... 5 more ... | undefined; jobDescription?: string | undefined; professionalAddress?: { ...; } | u...' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+components/ProfessionalProfileForm.tsx(98,11): error TS2322: Type '{ profession?: string | undefined; company?: string | undefined; professionalEmail?: string | undefined; professionalPhone?: string | undefined; website?: string | undefined; sector?: string | undefined; ... 6 more ...; timezone: string; }' is not assignable to type 'Partial<UserProfile>'.
+  Types of property 'status' are incompatible.
+    Type '"" | "employee" | "freelancer" | "retired" | "student" | "other" | undefined' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+      Type '""' is not assignable to type '"employee" | "freelancer" | "retired" | "student" | "other" | undefined'.
+hooks/useIntelligentAutoSave.ts(26,26): error TS2554: Expected 1 arguments, but got 0.
+hooks/useIntelligentAutoSave.ts(27,26): error TS2554: Expected 1 arguments, but got 0.
+lib/ai-editor-cache.ts(69,50): error TS2304: Cannot find name 'entry'.
