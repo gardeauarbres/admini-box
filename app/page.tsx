@@ -221,356 +221,358 @@ export default function Home() {
       showToast('Erreur lors de l\'ajout de l\'organisme', 'error');
       throw error; // Re-throw pour que le formulaire puisse gérer l'erreur
     }
-    const handleMarkAllAsDone = async () => {
-      if (!user || !organisms.length) return;
+  };
 
-      const urgentOrWarning = organisms.filter(org => org.status === 'urgent' || org.status === 'warning');
-      if (urgentOrWarning.length === 0) {
-        showToast('Aucune tâche urgente ou en attention à traiter.', 'info');
-        return;
-      }
+  const handleMarkAllAsDone = async () => {
+    if (!user || !organisms.length) return;
 
-      if (!confirm(`Marquer ${urgentOrWarning.length} organismes comme "OK" ?`)) {
-        return;
-      }
-
-      try {
-        await Promise.all(urgentOrWarning.map(org =>
-          updateMutation.mutateAsync({
-            id: org.$id,
-            userId: user.$id,
-            updates: { status: 'ok', message: 'Tout est à jour' }
-          })
-        ));
-        showToast('Toutes les tâches ont été marquées comme traitées ! 🎉', 'success');
-      } catch (error) {
-        console.error('Batch update failed:', error);
-        showToast('Erreur lors de la mise à jour massive.', 'error');
-      }
-    };
-
-    const handleClearCompleted = async () => {
-      if (!user || !organisms.length) return;
-
-      const completed = organisms.filter(org => org.status === 'ok');
-      if (completed.length === 0) {
-        showToast('Aucun organisme "OK" à supprimer.', 'info');
-        return;
-      }
-
-      if (!confirm(`ATTENTION : Supprimer définitivement ${completed.length} organismes marqués "OK" ?`)) {
-        return;
-      }
-
-      try {
-        await Promise.all(completed.map(org =>
-          deleteMutation.mutateAsync({
-            id: org.$id,
-            userId: user.$id
-          })
-        ));
-        showToast(`${completed.length} organismes supprimés.`, 'success');
-      } catch (error) {
-        console.error('Batch delete failed:', error);
-        showToast('Erreur lors de la suppression massive.', 'error');
-      }
-    };
-
-
-    if (isLoading) {
-      return (
-        <div>
-          <header style={{ marginBottom: '3rem' }}>
-            <div style={{ height: '40px', width: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '0.5rem' }} />
-            <div style={{ height: '20px', width: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
-          </header>
-          <div style={{ marginBottom: '2rem' }}>
-            <div style={{ height: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem' }} />
-          </div>
-          <SkeletonLoader />
-        </div>
-      );
+    const urgentOrWarning = organisms.filter(org => org.status === 'urgent' || org.status === 'warning');
+    if (urgentOrWarning.length === 0) {
+      showToast('Aucune tâche urgente ou en attention à traiter.', 'info');
+      return;
     }
 
-    if (!user) {
-      return (
-        <div style={{ textAlign: 'center', marginTop: '4rem' }}>
-          <h1 className="section-title">Bienvenue sur AdminiBox</h1>
-          <p style={{ marginBottom: '2rem', color: 'var(--secondary)' }}>
-            Connectez-vous pour accéder à votre tableau de bord.
-          </p>
-          <a href="/login" className="btn btn-primary">Se connecter</a>
-        </div>
-      );
+    if (!confirm(`Marquer ${urgentOrWarning.length} organismes comme "OK" ?`)) {
+      return;
     }
 
+    try {
+      await Promise.all(urgentOrWarning.map(org =>
+        updateMutation.mutateAsync({
+          id: org.$id,
+          userId: user.$id,
+          updates: { status: 'ok', message: 'Tout est à jour' }
+        })
+      ));
+      showToast('Toutes les tâches ont été marquées comme traitées ! 🎉', 'success');
+    } catch (error) {
+      console.error('Batch update failed:', error);
+      showToast('Erreur lors de la mise à jour massive.', 'error');
+    }
+  };
+
+  const handleClearCompleted = async () => {
+    if (!user || !organisms.length) return;
+
+    const completed = organisms.filter(org => org.status === 'ok');
+    if (completed.length === 0) {
+      showToast('Aucun organisme "OK" à supprimer.', 'info');
+      return;
+    }
+
+    if (!confirm(`ATTENTION : Supprimer définitivement ${completed.length} organismes marqués "OK" ?`)) {
+      return;
+    }
+
+    try {
+      await Promise.all(completed.map(org =>
+        deleteMutation.mutateAsync({
+          id: org.$id,
+          userId: user.$id
+        })
+      ));
+      showToast(`${completed.length} organismes supprimés.`, 'success');
+    } catch (error) {
+      console.error('Batch delete failed:', error);
+      showToast('Erreur lors de la suppression massive.', 'error');
+    }
+  };
+
+
+  if (isLoading) {
     return (
       <div>
         <header style={{ marginBottom: '3rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
-            <NotificationBell />
-            <h1 className="section-title" style={{ margin: 0, flex: 1 }}>Tableau de Bord Unifié</h1>
-          </div>
-          <p style={{ color: 'var(--secondary)' }}>
-            Bienvenue sur votre Hub des Organismes Administratifs (HOA).
-            <br />
-            {urgentCount > 0 ? (
-              <>Vous avez <strong style={{ color: 'var(--danger)' }}>{urgentCount} action{urgentCount > 1 ? 's' : ''} urgente{urgentCount > 1 ? 's' : ''}</strong> à traiter.</>
-            ) : (
-              <>Tout est à jour.</>
-            )}
-          </p>
+          <div style={{ height: '40px', width: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '0.5rem' }} />
+          <div style={{ height: '20px', width: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
         </header>
-
-        {/* Widgets personnalisables */}
-        <DashboardWidgets organisms={organisms} transactions={transactions} />
-
-        {/* Confetti quand 0 urgence */}
-        <ConfettiCelebration urgentCount={urgentCount} />
-
-        <section>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
-            <h2 style={{ fontSize: '1.2rem', opacity: 0.8 }}>Vos Organismes</h2>
-            <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-              {organisms.length > 0 && (
-                <>
-                  <button
-                    onClick={handleMarkAllAsDone}
-                    className="btn btn-primary"
-                    style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--success)', borderColor: 'var(--success)' }}
-                    title="Marquer tous les urgents/warnings comme OK"
-                  >
-                    ✅ Tout valider
-                  </button>
-                  <button
-                    onClick={handleClearCompleted}
-                    className="btn btn-secondary"
-                    style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
-                    title="Supprimer tous les organismes OK"
-                  >
-                    🗑️ Nettoyer terminés
-                  </button>
-                  <button
-                    onClick={handleExport}
-                    className="btn btn-secondary"
-                    style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                    title="Exporter les organismes en CSV (Ctrl+E)"
-                    data-export-button
-                    aria-label="Exporter les organismes en CSV"
-                  >
-                    📥 Exporter CSV
-                  </button>
-                </>
-              )}
-              <button
-                onClick={() => {
-                  setShowTemplates(!showTemplates);
-                  setShowAddForm(false);
-                }}
-                className="btn btn-secondary"
-                style={{ padding: '0.5rem 1rem' }}
-                data-templates-button
-                aria-label="Ouvrir les templates d'organismes"
-              >
-                {showTemplates ? 'Annuler' : '📋 Templates'}
-              </button>
-              <button
-                onClick={() => {
-                  setShowAddForm(!showAddForm);
-                  setShowTemplates(false);
-                }}
-                className="btn btn-primary"
-                style={{ padding: '0.5rem 1rem' }}
-                data-add-organism
-                aria-label="Ajouter un nouvel organisme"
-              >
-                {showAddForm ? 'Annuler' : '+ Ajouter un organisme'}
-              </button>
-            </div>
-          </div>
-
-          {/* Barre de recherche et filtres */}
-          {organisms.length > 0 && (
-            <>
-              {/* Filtres sauvegardés */}
-              <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1rem' }}>
-                <FilterPresets
-                  currentFilters={{
-                    status: statusFilter,
-                    tag: tagFilter,
-                    favoritesOnly,
-                    searchQuery,
-                  }}
-                  onApplyPreset={(filters) => {
-                    setStatusFilter(filters.status || 'all');
-                    setTagFilter(filters.tag || 'all');
-                    setFavoritesOnly(filters.favoritesOnly || false);
-                    setSearchQuery(filters.searchQuery || '');
-                  }}
-                />
-              </div>
-              <div style={{
-                display: 'flex',
-                gap: '1rem',
-                marginBottom: '1.5rem',
-                flexWrap: 'wrap',
-                alignItems: 'center'
-              }}>
-                <input
-                  type="text"
-                  placeholder="🔍 Rechercher un organisme..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    flex: 1,
-                    minWidth: '200px',
-                    padding: '0.75rem',
-                    borderRadius: 'var(--radius)',
-                    background: 'var(--input-bg)',
-                    border: '1px solid var(--input-border)',
-                    color: 'var(--foreground)',
-                    fontSize: '0.9rem'
-                  }}
-                />
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
-                  <button
-                    onClick={() => setFavoritesOnly(!favoritesOnly)}
-                    className={`btn ${favoritesOnly ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
-                    title="Afficher uniquement les favoris"
-                  >
-                    ⭐ {favoritesOnly ? 'Favoris' : 'Tous'}
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('all')}
-                    className={`btn ${statusFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    Tous
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('ok')}
-                    className={`btn ${statusFilter === 'ok' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    OK
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('warning')}
-                    className={`btn ${statusFilter === 'warning' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    Attention
-                  </button>
-                  <button
-                    onClick={() => setStatusFilter('urgent')}
-                    className={`btn ${statusFilter === 'urgent' ? 'btn-primary' : 'btn-secondary'}`}
-                    style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
-                  >
-                    Urgent
-                  </button>
-                  {allTags.length > 0 && (
-                    <select
-                      value={tagFilter}
-                      onChange={(e) => setTagFilter(e.target.value)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        borderRadius: 'var(--radius)',
-                        background: 'var(--input-bg)',
-                        border: '1px solid var(--input-border)',
-                        color: 'var(--foreground)',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      <option value="all">Tous les tags</option>
-                      {allTags.map(tag => (
-                        <option key={tag} value={tag}>#{tag}</option>
-                      ))}
-                    </select>
-                  )}
-                </div>
-              </div>
-            </>
-          )}
-
-          {showTemplates && (
-            <OrganismTemplates
-              onSelectTemplate={(template) => {
-                handleAddOrganism({
-                  name: template.name,
-                  url: template.url,
-                  status: 'ok',
-                  message: template.message,
-                  tags: template.tags,
-                });
-                setShowTemplates(false);
-              }}
-            />
-          )}
-
-          {showAddForm && (
-            <OrganismForm
-              onSubmit={handleAddOrganism}
-              onCancel={() => setShowAddForm(false)}
-              isSubmitting={createMutation.isPending}
-            />
-          )}
-
-          {organisms.length === 0 ? (
-            <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
-              Aucun organisme configuré.
-            </div>
-          ) : filteredOrganisms.length === 0 ? (
-            <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
-              Aucun organisme ne correspond à votre recherche.
-            </div>
-          ) : (
-            <>
-              <motion.div
-                layout
-                className="grid-dashboard"
-              >
-                <AnimatePresence mode="popLayout">
-                  {paginationData.paginatedOrganisms.map((org) => (
-                    <OrganismCard
-                      key={org.$id}
-                      name={org.name}
-                      status={org.status}
-                      message={org.message}
-                      icon="🏛️"
-                      url={org.url}
-                      tags={org.tags}
-                      isFavorite={org.isFavorite}
-                      reminderDate={org.reminderDate}
-                      reminderMessage={org.reminderMessage}
-                      notes={org.notes}
-                      attachments={org.attachments}
-                      events={org.events}
-                      organismId={org.$id}
-                      onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
-                      onDelete={() => handleDeleteOrganism(org.$id)}
-                      onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
-                    />
-                  ))}
-                </AnimatePresence>
-              </motion.div>
-              {(searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || favoritesOnly) && (
-                <div style={{ marginTop: '1rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.9rem' }}>
-                  {filteredOrganisms.length} organisme{filteredOrganisms.length > 1 ? 's' : ''} trouvé{filteredOrganisms.length > 1 ? 's' : ''} sur {organisms.length}
-                </div>
-              )}
-              {paginationData.totalPages > 1 && (
-                <Pagination
-                  currentPage={currentPage}
-                  totalPages={paginationData.totalPages}
-                  onPageChange={setCurrentPage}
-                  itemsPerPage={itemsPerPage}
-                  totalItems={filteredOrganisms.length}
-                />
-              )}
-            </>
-          )}
-        </section>
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ height: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem' }} />
+        </div>
+        <SkeletonLoader />
       </div>
     );
   }
+
+  if (!user) {
+    return (
+      <div style={{ textAlign: 'center', marginTop: '4rem' }}>
+        <h1 className="section-title">Bienvenue sur AdminiBox</h1>
+        <p style={{ marginBottom: '2rem', color: 'var(--secondary)' }}>
+          Connectez-vous pour accéder à votre tableau de bord.
+        </p>
+        <a href="/login" className="btn btn-primary">Se connecter</a>
+      </div>
+    );
+  }
+
+  return (
+    <div>
+      <header style={{ marginBottom: '3rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <NotificationBell />
+          <h1 className="section-title" style={{ margin: 0, flex: 1 }}>Tableau de Bord Unifié</h1>
+        </div>
+        <p style={{ color: 'var(--secondary)' }}>
+          Bienvenue sur votre Hub des Organismes Administratifs (HOA).
+          <br />
+          {urgentCount > 0 ? (
+            <>Vous avez <strong style={{ color: 'var(--danger)' }}>{urgentCount} action{urgentCount > 1 ? 's' : ''} urgente{urgentCount > 1 ? 's' : ''}</strong> à traiter.</>
+          ) : (
+            <>Tout est à jour.</>
+          )}
+        </p>
+      </header>
+
+      {/* Widgets personnalisables */}
+      <DashboardWidgets organisms={organisms} transactions={transactions} />
+
+      {/* Confetti quand 0 urgence */}
+      <ConfettiCelebration urgentCount={urgentCount} />
+
+      <section>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
+          <h2 style={{ fontSize: '1.2rem', opacity: 0.8 }}>Vos Organismes</h2>
+          <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            {organisms.length > 0 && (
+              <>
+                <button
+                  onClick={handleMarkAllAsDone}
+                  className="btn btn-primary"
+                  style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', background: 'var(--success)', borderColor: 'var(--success)' }}
+                  title="Marquer tous les urgents/warnings comme OK"
+                >
+                  ✅ Tout valider
+                </button>
+                <button
+                  onClick={handleClearCompleted}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                  title="Supprimer tous les organismes OK"
+                >
+                  🗑️ Nettoyer terminés
+                </button>
+                <button
+                  onClick={handleExport}
+                  className="btn btn-secondary"
+                  style={{ padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                  title="Exporter les organismes en CSV (Ctrl+E)"
+                  data-export-button
+                  aria-label="Exporter les organismes en CSV"
+                >
+                  📥 Exporter CSV
+                </button>
+              </>
+            )}
+            <button
+              onClick={() => {
+                setShowTemplates(!showTemplates);
+                setShowAddForm(false);
+              }}
+              className="btn btn-secondary"
+              style={{ padding: '0.5rem 1rem' }}
+              data-templates-button
+              aria-label="Ouvrir les templates d'organismes"
+            >
+              {showTemplates ? 'Annuler' : '📋 Templates'}
+            </button>
+            <button
+              onClick={() => {
+                setShowAddForm(!showAddForm);
+                setShowTemplates(false);
+              }}
+              className="btn btn-primary"
+              style={{ padding: '0.5rem 1rem' }}
+              data-add-organism
+              aria-label="Ajouter un nouvel organisme"
+            >
+              {showAddForm ? 'Annuler' : '+ Ajouter un organisme'}
+            </button>
+          </div>
+        </div>
+
+        {/* Barre de recherche et filtres */}
+        {organisms.length > 0 && (
+          <>
+            {/* Filtres sauvegardés */}
+            <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1rem' }}>
+              <FilterPresets
+                currentFilters={{
+                  status: statusFilter,
+                  tag: tagFilter,
+                  favoritesOnly,
+                  searchQuery,
+                }}
+                onApplyPreset={(filters) => {
+                  setStatusFilter(filters.status || 'all');
+                  setTagFilter(filters.tag || 'all');
+                  setFavoritesOnly(filters.favoritesOnly || false);
+                  setSearchQuery(filters.searchQuery || '');
+                }}
+              />
+            </div>
+            <div style={{
+              display: 'flex',
+              gap: '1rem',
+              marginBottom: '1.5rem',
+              flexWrap: 'wrap',
+              alignItems: 'center'
+            }}>
+              <input
+                type="text"
+                placeholder="🔍 Rechercher un organisme..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{
+                  flex: 1,
+                  minWidth: '200px',
+                  padding: '0.75rem',
+                  borderRadius: 'var(--radius)',
+                  background: 'var(--input-bg)',
+                  border: '1px solid var(--input-border)',
+                  color: 'var(--foreground)',
+                  fontSize: '0.9rem'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                <button
+                  onClick={() => setFavoritesOnly(!favoritesOnly)}
+                  className={`btn ${favoritesOnly ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem', display: 'flex', alignItems: 'center', gap: '0.25rem' }}
+                  title="Afficher uniquement les favoris"
+                >
+                  ⭐ {favoritesOnly ? 'Favoris' : 'Tous'}
+                </button>
+                <button
+                  onClick={() => setStatusFilter('all')}
+                  className={`btn ${statusFilter === 'all' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                  Tous
+                </button>
+                <button
+                  onClick={() => setStatusFilter('ok')}
+                  className={`btn ${statusFilter === 'ok' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                  OK
+                </button>
+                <button
+                  onClick={() => setStatusFilter('warning')}
+                  className={`btn ${statusFilter === 'warning' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                  Attention
+                </button>
+                <button
+                  onClick={() => setStatusFilter('urgent')}
+                  className={`btn ${statusFilter === 'urgent' ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ fontSize: '0.85rem', padding: '0.5rem 1rem' }}
+                >
+                  Urgent
+                </button>
+                {allTags.length > 0 && (
+                  <select
+                    value={tagFilter}
+                    onChange={(e) => setTagFilter(e.target.value)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      borderRadius: 'var(--radius)',
+                      background: 'var(--input-bg)',
+                      border: '1px solid var(--input-border)',
+                      color: 'var(--foreground)',
+                      fontSize: '0.85rem',
+                    }}
+                  >
+                    <option value="all">Tous les tags</option>
+                    {allTags.map(tag => (
+                      <option key={tag} value={tag}>#{tag}</option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+          </>
+        )}
+
+        {showTemplates && (
+          <OrganismTemplates
+            onSelectTemplate={(template) => {
+              handleAddOrganism({
+                name: template.name,
+                url: template.url,
+                status: 'ok',
+                message: template.message,
+                tags: template.tags,
+              });
+              setShowTemplates(false);
+            }}
+          />
+        )}
+
+        {showAddForm && (
+          <OrganismForm
+            onSubmit={handleAddOrganism}
+            onCancel={() => setShowAddForm(false)}
+            isSubmitting={createMutation.isPending}
+          />
+        )}
+
+        {organisms.length === 0 ? (
+          <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
+            Aucun organisme configuré.
+          </div>
+        ) : filteredOrganisms.length === 0 ? (
+          <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
+            Aucun organisme ne correspond à votre recherche.
+          </div>
+        ) : (
+          <>
+            <motion.div
+              layout
+              className="grid-dashboard"
+            >
+              <AnimatePresence mode="popLayout">
+                {paginationData.paginatedOrganisms.map((org) => (
+                  <OrganismCard
+                    key={org.$id}
+                    name={org.name}
+                    status={org.status}
+                    message={org.message}
+                    icon="🏛️"
+                    url={org.url}
+                    tags={org.tags}
+                    isFavorite={org.isFavorite}
+                    reminderDate={org.reminderDate}
+                    reminderMessage={org.reminderMessage}
+                    notes={org.notes}
+                    attachments={org.attachments}
+                    events={org.events}
+                    organismId={org.$id}
+                    onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
+                    onDelete={() => handleDeleteOrganism(org.$id)}
+                    onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
+            {(searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || favoritesOnly) && (
+              <div style={{ marginTop: '1rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.9rem' }}>
+                {filteredOrganisms.length} organisme{filteredOrganisms.length > 1 ? 's' : ''} trouvé{filteredOrganisms.length > 1 ? 's' : ''} sur {organisms.length}
+              </div>
+            )}
+            {paginationData.totalPages > 1 && (
+              <Pagination
+                currentPage={currentPage}
+                totalPages={paginationData.totalPages}
+                onPageChange={setCurrentPage}
+                itemsPerPage={itemsPerPage}
+                totalItems={filteredOrganisms.length}
+              />
+            )}
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
