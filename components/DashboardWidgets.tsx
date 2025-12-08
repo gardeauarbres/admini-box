@@ -2,10 +2,76 @@
 
 import { useState, useEffect } from 'react';
 import { saveToStorage, getFromStorage } from '@/lib/storage';
+import {
+  DndContext,
+  closestCenter,
+  KeyboardSensor,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  DragEndEvent
+} from '@dnd-kit/core';
+import {
+  arrayMove,
+  SortableContext,
+  sortableKeyboardCoordinates,
+  verticalListSortingStrategy,
+  useSortable
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import DashboardStats from './DashboardStats';
 import AdvancedStats from './AdvancedStats';
 import AnalyticsDashboard from './AnalyticsDashboard';
 import type { Organism, Transaction } from '@/lib/queries';
+
+// Composant pour rendre un widget draggable
+function SortableWidget({ id, children, isEditing }: { id: string; children: React.ReactNode; isEditing: boolean }) {
+  const {
+    attributes,
+    listeners,
+    setNodeRef,
+    transform,
+    transition,
+  } = useSortable({ id });
+
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    marginBottom: '1.5rem',
+    position: 'relative' as const,
+    zIndex: isEditing ? 10 : 1, // Mettre au dessus quand on édite
+  };
+
+  return (
+    <div ref={setNodeRef} style={style} {...attributes}>
+      {/* Poignée de drag uniquement visible en mode édition */}
+      {isEditing && (
+        <div
+          {...listeners}
+          style={{
+            position: 'absolute',
+            top: '-10px',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            background: 'var(--primary)',
+            color: 'white',
+            padding: '0.2rem 1rem',
+            borderRadius: '20px',
+            cursor: 'grab',
+            zIndex: 20,
+            fontSize: '0.8rem',
+            fontWeight: 'bold',
+            boxShadow: '0 2px 5px rgba(0,0,0,0.2)',
+            touchAction: 'none'
+          }}
+        >
+          ✋ Déplacer
+        </div>
+      )}
+      {children}
+    </div>
+  );
+}
 
 interface DashboardWidgetsProps {
   organisms: Organism[];
@@ -32,6 +98,13 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
   const [widgets, setWidgets] = useState<WidgetConfig[]>(DEFAULT_WIDGETS);
   const [isEditing, setIsEditing] = useState(false);
 
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(KeyboardSensor, {
+      coordinateGetter: sortableKeyboardCoordinates,
+    })
+  );
+
   // Charger la configuration depuis localStorage
   useEffect(() => {
     const saved = getFromStorage<WidgetConfig[]>('dashboard_widgets', DEFAULT_WIDGETS);
@@ -46,30 +119,30 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
 
   // Toggle l'état d'un widget
   const toggleWidget = (widgetId: WidgetId) => {
-    const newWidgets = widgets.map(w => 
+    const newWidgets = widgets.map(w =>
       w.id === widgetId ? { ...w, enabled: !w.enabled } : w
     );
     saveWidgets(newWidgets);
   };
 
-  // Réorganiser les widgets (monter)
-  const moveUp = (index: number) => {
-    if (index === 0) return;
-    const newWidgets = [...widgets];
-    [newWidgets[index - 1], newWidgets[index]] = [newWidgets[index], newWidgets[index - 1]];
-    newWidgets[index - 1].order = index;
-    newWidgets[index].order = index + 1;
-    saveWidgets(newWidgets);
-  };
+  // Gestion du Drag & Drop
+  const handleDragEnd = (event: DragEndEvent) => {
+    const { active, over } = event;
 
-  // Réorganiser les widgets (descendre)
-  const moveDown = (index: number) => {
-    if (index === widgets.length - 1) return;
-    const newWidgets = [...widgets];
-    [newWidgets[index], newWidgets[index + 1]] = [newWidgets[index + 1], newWidgets[index]];
-    newWidgets[index].order = index + 1;
-    newWidgets[index + 1].order = index + 2;
-    saveWidgets(newWidgets);
+    if (over && active.id !== over.id) {
+      setWidgets((items) => {
+        const oldIndex = items.findIndex((item) => item.id === active.id);
+        const newIndex = items.findIndex((item) => item.id === over.id);
+
+        const newOrder = arrayMove(items, oldIndex, newIndex).map((item, index) => ({
+          ...item,
+          order: index + 1
+        }));
+
+        saveToStorage('dashboard_widgets', newOrder);
+        return newOrder;
+      });
+    }
   };
 
   // Réinitialiser à la configuration par défaut
@@ -104,7 +177,7 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             ⚙️ Configuration des Widgets
           </h3>
-          
+
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
             {sortedWidgets.map((widget, index) => (
               <div
@@ -119,34 +192,17 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
                   border: '1px solid var(--card-border)',
                 }}
               >
-                <button
-                  onClick={() => moveUp(index)}
-                  disabled={index === 0}
-                  className="btn btn-icon"
-                  style={{ opacity: index === 0 ? 0.3 : 1 }}
-                  title="Monter"
-                >
-                  ↑
-                </button>
-                <button
-                  onClick={() => moveDown(index)}
-                  disabled={index === sortedWidgets.length - 1}
-                  className="btn btn-icon"
-                  style={{ opacity: index === sortedWidgets.length - 1 ? 0.3 : 1 }}
-                  title="Descendre"
-                >
-                  ↓
-                </button>
-                
+                {/* Boutons de déplacement supprimés au profit du Drag & Drop */}
+
                 <span style={{ fontSize: '1.25rem' }}>{widget.icon}</span>
-                
+
                 <div style={{ flex: 1 }}>
                   <div style={{ fontWeight: 500 }}>{widget.name}</div>
                   <div style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>
                     {widget.enabled ? '✅ Activé' : '❌ Désactivé'}
                   </div>
                 </div>
-                
+
                 <button
                   onClick={() => toggleWidget(widget.id)}
                   className={`btn ${widget.enabled ? 'btn-secondary' : 'btn-primary'}`}
@@ -170,33 +226,46 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
         </div>
       )}
 
-      {/* Affichage des widgets */}
-      <div>
-        {enabledWidgets.map(widget => {
-          switch (widget.id) {
-            case 'stats':
+      {/* Affichage des widgets (Draggable) */}
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        onDragEnd={handleDragEnd}
+      >
+        <SortableContext
+          items={enabledWidgets.map(w => w.id)}
+          strategy={verticalListSortingStrategy}
+        >
+          <div>
+            {enabledWidgets.map(widget => {
+              let content = null;
+              switch (widget.id) {
+                case 'stats':
+                  content = <DashboardStats organisms={organisms} transactions={transactions} />;
+                  break;
+                case 'advanced':
+                  content = <AdvancedStats organisms={organisms} transactions={transactions} />;
+                  break;
+                case 'analytics':
+                  content = (organisms.length > 0 || transactions.length > 0) ? (
+                    <AnalyticsDashboard organisms={organisms} transactions={transactions} />
+                  ) : null;
+                  break;
+              }
+
+              if (!content) return null;
+
               return (
-                <div key={widget.id}>
-                  <DashboardStats organisms={organisms} transactions={transactions} />
-                </div>
+                <SortableWidget key={widget.id} id={widget.id} isEditing={isEditing}>
+                  <div style={{ pointerEvents: isEditing ? 'none' : 'auto', opacity: isEditing ? 0.8 : 1, transition: 'opacity 0.2s' }}>
+                    {content}
+                  </div>
+                </SortableWidget>
               );
-            case 'advanced':
-              return (
-                <div key={widget.id}>
-                  <AdvancedStats organisms={organisms} transactions={transactions} />
-                </div>
-              );
-            case 'analytics':
-              return (organisms.length > 0 || transactions.length > 0) ? (
-                <div key={widget.id}>
-                  <AnalyticsDashboard organisms={organisms} transactions={transactions} />
-                </div>
-              ) : null;
-            default:
-              return null;
-          }
-        })}
-      </div>
+            })}
+          </div>
+        </SortableContext>
+      </DndContext>
 
       {enabledWidgets.length === 0 && (
         <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--secondary)' }}>

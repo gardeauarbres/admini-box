@@ -1,11 +1,13 @@
 'use client';
 
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import ConfettiCelebration from '@/components/ConfettiCelebration';
 import OrganismCard from '@/components/OrganismCard';
 import OrganismForm from '@/components/OrganismForm';
 import OrganismTemplates from '@/components/OrganismTemplates';
 import Pagination from '@/components/Pagination';
-import LoadingSpinner from '@/components/LoadingSpinner';
+import SkeletonLoader from '@/components/SkeletonLoader';
 import DashboardWidgets from '@/components/DashboardWidgets';
 import FilterPresets from '@/components/FilterPresets';
 import NotificationBell from '@/components/NotificationBell';
@@ -222,7 +224,18 @@ export default function Home() {
   };
 
   if (isLoading) {
-    return <LoadingSpinner message="Chargement de vos organismes..." />;
+    return (
+      <div>
+        <header style={{ marginBottom: '3rem' }}>
+          <div style={{ height: '40px', width: '300px', background: 'rgba(255,255,255,0.1)', borderRadius: '8px', marginBottom: '0.5rem' }} />
+          <div style={{ height: '20px', width: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '4px' }} />
+        </header>
+        <div style={{ marginBottom: '2rem' }}>
+          <div style={{ height: '200px', background: 'rgba(255,255,255,0.05)', borderRadius: '1rem' }} />
+        </div>
+        <SkeletonLoader />
+      </div>
+    );
   }
 
   if (!user) {
@@ -257,6 +270,9 @@ export default function Home() {
 
       {/* Widgets personnalisables */}
       <DashboardWidgets organisms={organisms} transactions={transactions} />
+
+      {/* Confetti quand 0 urgence */}
+      <ConfettiCelebration urgentCount={urgentCount} />
 
       <section>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -438,29 +454,34 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <div className="grid-dashboard animate-fade-in">
-              {paginationData.paginatedOrganisms.map((org) => (
-                <OrganismCard
-                  key={org.$id}
-                  name={org.name}
-                  status={org.status}
-                  message={org.message}
-                  icon="🏛️"
-                  url={org.url}
-                  tags={org.tags}
-                  isFavorite={org.isFavorite}
-                  reminderDate={org.reminderDate}
-                  reminderMessage={org.reminderMessage}
-                  notes={org.notes}
-                  attachments={org.attachments}
-                  events={org.events}
-                  organismId={org.$id}
-                  onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
-                  onDelete={() => handleDeleteOrganism(org.$id)}
-                  onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
-                />
-              ))}
-            </div>
+            <motion.div
+              layout
+              className="grid-dashboard"
+            >
+              <AnimatePresence mode="popLayout">
+                {paginationData.paginatedOrganisms.map((org) => (
+                  <OrganismCard
+                    key={org.$id}
+                    name={org.name}
+                    status={org.status}
+                    message={org.message}
+                    icon="🏛️"
+                    url={org.url}
+                    tags={org.tags}
+                    isFavorite={org.isFavorite}
+                    reminderDate={org.reminderDate}
+                    reminderMessage={org.reminderMessage}
+                    notes={org.notes}
+                    attachments={org.attachments}
+                    events={org.events}
+                    organismId={org.$id}
+                    onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
+                    onDelete={() => handleDeleteOrganism(org.$id)}
+                    onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
+                  />
+                ))}
+              </AnimatePresence>
+            </motion.div>
             {(searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || favoritesOnly) && (
               <div style={{ marginTop: '1rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.9rem' }}>
                 {filteredOrganisms.length} organisme{filteredOrganisms.length > 1 ? 's' : ''} trouvé{filteredOrganisms.length > 1 ? 's' : ''} sur {organisms.length}

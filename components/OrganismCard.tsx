@@ -1,4 +1,5 @@
 import React, { useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
 import OrganismTags from './OrganismTags';
 import OrganismReminder from './OrganismReminder';
 import OrganismNotes from './OrganismNotes';
@@ -109,7 +110,16 @@ const OrganismCard: React.FC<OrganismCardProps> = ({
     };
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', overflow: 'hidden' }}>
+        <motion.div
+            layout
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            whileHover={{ scale: 1.02, y: -5 }}
+            transition={{ type: 'spring', stiffness: 300, damping: 20 }}
+            className="glass-panel"
+            style={{ padding: '1.5rem', display: 'flex', flexDirection: 'column', gap: '1rem', position: 'relative', overflow: 'hidden' }}
+        >
             <div style={{
                 position: 'absolute',
                 top: 0,
@@ -390,7 +400,7 @@ const OrganismCard: React.FC<OrganismCardProps> = ({
                     onClose={() => setShowShare(false)}
                 />
             )}
-        </div>
+        </motion.div>
     );
 };
 

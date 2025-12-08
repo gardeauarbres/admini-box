@@ -24,6 +24,7 @@ import PersistentNotifications from "@/components/PersistentNotifications";
 import ReminderNotifications from "@/components/ReminderNotifications";
 import AutoBackup from "@/components/AutoBackup";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
+import PageTransition from "@/components/PageTransition";
 
 export default function RootLayout({
   children,
@@ -40,16 +41,18 @@ export default function RootLayout({
                 <ErrorBoundary>
                   <AuthProvider>
                     <ToastProvider>
-                          <KeyboardShortcuts />
-                          <KeyboardShortcutsHelp />
-                          <NetworkStatus />
-                          <PersistentNotifications />
-                          <ReminderNotifications />
-                          <AutoBackup />
+                      <KeyboardShortcuts />
+                      <KeyboardShortcutsHelp />
+                      <NetworkStatus />
+                      <PersistentNotifications />
+                      <ReminderNotifications />
+                      <AutoBackup />
                       <div className="layout-wrapper">
                         <Navigation />
                         <main className="container">
-                          {children}
+                          <PageTransition>
+                            {children}
+                          </PageTransition>
                         </main>
                       </div>
                     </ToastProvider>
