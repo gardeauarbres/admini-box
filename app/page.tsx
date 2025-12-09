@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import ConfettiCelebration from '@/components/ConfettiCelebration';
 import OrganismCard from '@/components/OrganismCard';
 import OrganismForm from '@/components/OrganismForm';
-import OrganismTemplates from '@/components/OrganismTemplates';
+import Marketplace from '@/components/Marketplace';
 import Pagination from '@/components/Pagination';
 import SkeletonLoader from '@/components/SkeletonLoader';
 import DashboardWidgets from '@/components/DashboardWidgets';
@@ -359,7 +359,7 @@ export default function Home() {
       {/* Confetti quand 0 urgence */}
       <ConfettiCelebration urgentCount={urgentCount} />
 
-      <section>
+      <section style={{ marginBottom: '2rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
           <h2 style={{ fontSize: '1.2rem', opacity: 0.8 }}>Vos Organismes</h2>
           <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
@@ -398,50 +398,61 @@ export default function Home() {
                 setShowTemplates(!showTemplates);
                 setShowAddForm(false);
               }}
-              className="btn btn-secondary"
-              style={{ padding: '0.5rem 1rem' }}
+              className="btn"
+              style={{
+                padding: '0.5rem 1rem',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+                color: 'white',
+                border: 'none',
+                boxShadow: '0 4px 12px rgba(99, 102, 241, 0.3)'
+              }}
               data-templates-button
-              aria-label="Ouvrir les templates d'organismes"
+              aria-label="Ouvrir le Service Store"
             >
-              {showTemplates ? 'Annuler' : '📋 Templates'}
+              {showTemplates ? 'Fermer Store' : '🏪 Service Store'}
             </button>
             <button
               onClick={() => {
                 setShowAddForm(!showAddForm);
                 setShowTemplates(false);
               }}
-              className="btn btn-primary"
+              className="btn btn-secondary"
               style={{ padding: '0.5rem 1rem' }}
               data-add-organism
-              aria-label="Ajouter un nouvel organisme"
+              aria-label="Ajouter un nouvel organisme manuellement"
             >
-              {showAddForm ? 'Annuler' : '+ Ajouter un organisme'}
+              {showAddForm ? 'Annuler' : '+ Ajout Manuel'}
             </button>
           </div>
         </div>
+      </section>
 
-        {/* View Mode Toggle */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '0.5rem' }}>
-          <button
-            onClick={() => setViewMode('grid')}
-            className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
-            title="Vue Grille"
-          >
-            🔲
-          </button>
-          <button
-            onClick={() => setViewMode('list')}
-            className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
-            title="Vue Liste"
-          >
-            ≣
-          </button>
-        </div>
+      {/* View Mode Toggle */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '0.5rem' }}>
+        <button
+          onClick={() => setViewMode('grid')}
+          className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
+          title="Vue Grille"
+        >
+          🔲
+        </button>
+        <button
+          onClick={() => setViewMode('list')}
+          className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+          style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
+          title="Vue Liste"
+        >
+          ≣
+        </button>
+      </div>
 
-        {/* Barre de recherche et filtres */}
-        {organisms.length > 0 && (
+      {/* Barre de recherche et filtres */}
+      {
+        organisms.length > 0 && (
           <>
             {/* Filtres sauvegardés */}
             <div className="glass-panel" style={{ padding: '1rem', marginBottom: '1rem' }}>
@@ -542,32 +553,41 @@ export default function Home() {
               </div>
             </div>
           </>
-        )}
+        )
+      }
 
-        {showTemplates && (
-          <OrganismTemplates
-            onSelectTemplate={(template) => {
-              handleAddOrganism({
-                name: template.name,
-                url: template.url,
-                status: 'ok',
-                message: template.message,
-                tags: template.tags,
-              });
-              setShowTemplates(false);
-            }}
-          />
-        )}
+      {
+        showTemplates && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999, background: 'rgba(0,0,0,0.8)', backdropFilter: 'blur(5px)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <Marketplace
+              onInstall={(template) => {
+                handleAddOrganism({
+                  name: template.name,
+                  url: template.url,
+                  status: 'ok',
+                  message: template.message,
+                  tags: template.tags,
+                });
+                setShowTemplates(false);
+              }}
+              onClose={() => setShowTemplates(false)}
+            />
+          </div>
+        )
+      }
 
-        {showAddForm && (
+      {
+        showAddForm && (
           <OrganismForm
             onSubmit={handleAddOrganism}
             onCancel={() => setShowAddForm(false)}
             isSubmitting={createMutation.isPending}
           />
-        )}
+        )
+      }
 
-        {organisms.length === 0 ? (
+      {
+        organisms.length === 0 ? (
           <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
             Aucun organisme configuré.
           </div>
@@ -695,8 +715,9 @@ export default function Home() {
               />
             )}
           </>
-        )}
-      </section>
+        )
+      }
+
     </div >
   );
 }
