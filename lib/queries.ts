@@ -137,8 +137,8 @@ export function useOrganisms(userId: string | null) {
       })) as Organism[];
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes (anciennement cacheTime)
+    staleTime: 0, // Always refetch on mount (navigation)
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -252,8 +252,8 @@ export function useTransactions(userId: string | null) {
       return response.documents as Transaction[];
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0, // Always refetch on mount
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -311,8 +311,8 @@ export function useDocuments(userId: string | null) {
       return response.documents as FileItem[];
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000, // 5 minutes
-    gcTime: 10 * 60 * 1000, // 10 minutes
+    staleTime: 0, // Always refetch on mount
+    gcTime: 10 * 60 * 1000,
   });
 }
 
@@ -440,7 +440,7 @@ export function useUserProfile(userId: string | null) {
       }
     },
     enabled: !!userId,
-    staleTime: 5 * 60 * 1000,
+    staleTime: 0,
     gcTime: 10 * 60 * 1000,
   });
 }
