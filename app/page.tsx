@@ -35,6 +35,7 @@ export default function Home() {
   const [statusFilter, setStatusFilter] = useState<'all' | 'ok' | 'warning' | 'urgent'>('all');
   const [tagFilter, setTagFilter] = useState<string>('all');
   const [favoritesOnly, setFavoritesOnly] = useState(false);
+  const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 6;
 
@@ -419,6 +420,26 @@ export default function Home() {
           </div>
         </div>
 
+        {/* View Mode Toggle */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', gap: '0.5rem' }}>
+          <button
+            onClick={() => setViewMode('grid')}
+            className={`btn ${viewMode === 'grid' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
+            title="Vue Grille"
+          >
+            🔲
+          </button>
+          <button
+            onClick={() => setViewMode('list')}
+            className={`btn ${viewMode === 'list' ? 'btn-primary' : 'btn-secondary'}`}
+            style={{ padding: '0.25rem 0.5rem', fontSize: '1.2rem' }}
+            title="Vue Liste"
+          >
+            ≣
+          </button>
+        </div>
+
         {/* Barre de recherche et filtres */}
         {organisms.length > 0 && (
           <>
@@ -556,34 +577,109 @@ export default function Home() {
           </div>
         ) : (
           <>
-            <motion.div
-              layout
-              className="grid-dashboard"
-            >
-              <AnimatePresence mode="popLayout">
-                {paginationData.paginatedOrganisms.map((org) => (
-                  <OrganismCard
-                    key={org.$id}
-                    name={org.name}
-                    status={org.status}
-                    message={org.message}
-                    icon="🏛️"
-                    url={org.url}
-                    tags={org.tags}
-                    isFavorite={org.isFavorite}
-                    reminderDate={org.reminderDate}
-                    reminderMessage={org.reminderMessage}
-                    notes={org.notes}
-                    attachments={org.attachments}
-                    events={org.events}
-                    organismId={org.$id}
-                    onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
-                    onDelete={() => handleDeleteOrganism(org.$id)}
-                    onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
-                  />
-                ))}
-              </AnimatePresence>
-            </motion.div>
+            {viewMode === 'grid' ? (
+              <motion.div
+                layout
+                className="grid-dashboard"
+              >
+                <AnimatePresence mode="popLayout">
+                  {paginationData.paginatedOrganisms.map((org) => (
+                    <OrganismCard
+                      key={org.$id}
+                      name={org.name}
+                      status={org.status}
+                      message={org.message}
+                      icon="🏛️"
+                      url={org.url}
+                      tags={org.tags}
+                      isFavorite={org.isFavorite}
+                      reminderDate={org.reminderDate}
+                      reminderMessage={org.reminderMessage}
+                      notes={org.notes}
+                      attachments={org.attachments}
+                      events={org.events}
+                      organismId={org.$id}
+                      onUpdate={(updates) => handleUpdateOrganism(org.$id, updates)}
+                      onDelete={() => handleDeleteOrganism(org.$id)}
+                      onToggleFavorite={() => handleUpdateOrganism(org.$id, { isFavorite: !org.isFavorite })}
+                    />
+                  ))}
+                </AnimatePresence>
+              </motion.div>
+            ) : (
+              <div className="glass-panel" style={{ overflowX: 'auto' }}>
+                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                  <thead>
+                    <tr style={{ borderBottom: '1px solid var(--card-border)' }}>
+                      <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--secondary)' }}>Nom</th>
+                      <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--secondary)' }}>Statut</th>
+                      <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--secondary)' }}>Message</th>
+                      <th style={{ padding: '1rem', textAlign: 'left', color: 'var(--secondary)' }}>Tags</th>
+                      <th style={{ padding: '1rem', textAlign: 'right', color: 'var(--secondary)' }}>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {paginationData.paginatedOrganisms.map((org) => (
+                      <tr key={org.$id} style={{ borderBottom: '1px solid var(--card-border)' }}>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            {org.isFavorite && <span>⭐</span>}
+                            <strong>{org.name}</strong>
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem' }}>
+                          <span style={{
+                            padding: '0.25rem 0.75rem',
+                            borderRadius: '999px',
+                            fontSize: '0.75rem',
+                            fontWeight: 'bold',
+                            background: org.status === 'urgent' ? 'var(--danger)20' : org.status === 'warning' ? 'var(--warning)20' : 'var(--success)20',
+                            color: org.status === 'urgent' ? 'var(--danger)' : org.status === 'warning' ? 'var(--warning)' : 'var(--success)',
+                            border: `1px solid ${org.status === 'urgent' ? 'var(--danger)40' : org.status === 'warning' ? 'var(--warning)40' : 'var(--success)40'}`
+                          }}>
+                            {org.status === 'warning' ? 'ATTENTION' : org.status.toUpperCase()}
+                          </span>
+                        </td>
+                        <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{org.message}</td>
+                        <td style={{ padding: '1rem' }}>
+                          <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                            {org.tags?.map(tag => (
+                              <span key={tag} style={{ fontSize: '0.75rem', padding: '0.125rem 0.5rem', background: 'var(--form-bg)', borderRadius: '4px' }}>#{tag}</span>
+                            ))}
+                          </div>
+                        </td>
+                        <td style={{ padding: '1rem', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+                            {org.url && (
+                              <button
+                                onClick={() => window.open(org.url, '_blank')}
+                                className="btn btn-secondary"
+                                style={{ padding: '0.5rem', fontSize: '0.9rem' }}
+                                title="Accéder au portail"
+                              >
+                                🔗
+                              </button>
+                            )}
+                            <button
+                              onClick={() => {
+                                if (confirm(`Êtes-vous sûr de vouloir supprimer "${org.name}" ?`)) {
+                                  handleDeleteOrganism(org.$id);
+                                }
+                              }}
+                              className="btn btn-secondary"
+                              style={{ padding: '0.5rem', fontSize: '0.9rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                              title="Supprimer"
+                            >
+                              🗑️
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
             {(searchQuery || statusFilter !== 'all' || tagFilter !== 'all' || favoritesOnly) && (
               <div style={{ marginTop: '1rem', textAlign: 'center', color: 'var(--secondary)', fontSize: '0.9rem' }}>
                 {filteredOrganisms.length} organisme{filteredOrganisms.length > 1 ? 's' : ''} trouvé{filteredOrganisms.length > 1 ? 's' : ''} sur {organisms.length}

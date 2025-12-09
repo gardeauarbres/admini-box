@@ -373,6 +373,7 @@ const OrganismCard: React.FC<OrganismCardProps> = ({
                             Enregistrer
                         </button>
                         <button
+                            type="button"
                             onClick={handleDelete}
                             className="btn btn-secondary"
                             style={{ padding: '0.5rem', fontSize: '0.85rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}

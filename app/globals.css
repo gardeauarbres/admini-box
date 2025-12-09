@@ -4,10 +4,12 @@
   --foreground: #0f172a;
 
   --primary: #3b82f6;
+  --primary-rgb: 59, 130, 246;
   /* Blue 500 */
   --primary-hover: #2563eb;
   /* Blue 600 */
   --secondary: #475569;
+  --secondary-rgb: 71, 85, 105;
   /* Slate 600 */
   --accent: #f43f5e;
   /* Rose 500 */
@@ -41,10 +43,12 @@
   --foreground: #f8fafc;
 
   --primary: #6366f1;
+  --primary-rgb: 99, 102, 241;
   /* Indigo 500 */
   --primary-hover: #4f46e5;
   /* Indigo 600 */
   --secondary: #94a3b8;
+  --secondary-rgb: 148, 163, 184;
   /* Slate 400 */
   --accent: #ec4899;
   /* Pink 500 */

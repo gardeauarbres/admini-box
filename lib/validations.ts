@@ -64,7 +64,7 @@ export const registerSchema = z.object({
   name: z.string()
     .min(2, "Le nom doit faire au moins 2 caractères")
     .max(100, "Le nom ne peut pas dépasser 100 caractères")
-    .regex(/^[a-zA-ZÀ-ÿ\s-']+$/, "Le nom ne peut contenir que des lettres, espaces, tirets et apostrophes"),
+    .regex(/^[a-zA-ZÀ-ÿ\s-'.0-9]+$/, "Le nom contient des caractères non autorisés"),
   email: z.string()
     .email("Email invalide")
     .min(1, "L'email est requis"),
