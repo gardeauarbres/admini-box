@@ -121,9 +121,7 @@ export default function Navigation() {
                 {/* Logo */}
                 {/* Logo */}
                 <Link
-                    href="https://www.gardeauarbres.fr"
-                    target="_blank"
-                    rel="noopener noreferrer"
+                    href="/"
                     className="logo-link"
                     style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'var(--foreground)' }}
                 >

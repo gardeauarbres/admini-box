@@ -332,7 +332,7 @@ export default function Home() {
             title="Visiter Gard Eau Arbres"
           >
             <img
-              src="/logo_gard_eau_arbres_fini200x200.png"
+              src="https://www.gardeauarbres.fr/assets/images/logo_gard_eau_arbres_fini200x200.png"
               alt="Gard Eau Arbres"
               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
             />

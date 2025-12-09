@@ -1,7 +1,6 @@
 import { NextResponse } from 'next/server';
-import { generateObject } from 'ai';
+import { generateText } from 'ai';
 import { groq } from '@ai-sdk/groq';
-import { z } from 'zod';
 
 const SYSTEM_PROMPT = `Rôle général
 Tu aides l’utilisateur à rédiger, améliorer, analyser et structurer des contenus administratifs (lettres, notes, comptes rendus, explications de courriers, etc.) pour des particuliers ou des professionnels.
@@ -80,6 +79,7 @@ export async function POST(req: Request) {
     try {
         const apiKey = process.env.GROQ_API_KEY;
         if (!apiKey) {
+            console.error('API Key Missing in POST');
             return NextResponse.json(
                 { error: 'Clé API Groq non configurée' },
                 { status: 500 }
@@ -96,39 +96,50 @@ export async function POST(req: Request) {
             );
         }
 
-        const { object } = await generateObject({
+        const { text } = await generateText({
             model: groq('llama-3.3-70b-versatile'),
-            schema: z.object({
-                texte_principal: z.string(),
-                variantes: z.array(z.string()).optional(),
-                meta: z.object({
-                    organisme: z.string().optional(),
-                    type_document: z.string().optional(),
-                    urgence: z.string().optional(),
-                    date_echeance: z.string().optional(),
-                    montant: z.string().optional(),
-                    actions_recommandees: z.array(z.string()).optional(),
-                }).optional(),
-                commentaires: z.array(z.string()).optional(),
-            }),
-            system: SYSTEM_PROMPT,
+            system: SYSTEM_PROMPT + "\nIMPORTANT: Retourne UNIQUEMENT le JSON brut, sans balises markdown (```json ... ```) et sans texte avant ou après.",
             prompt: JSON.stringify(body),
             temperature: 0.3,
+            // requestOptions supprimé car géré par le SDK
         });
+
+        // Nettoyage du markdown éventuel
+        let cleanedText = text.trim();
+        if (cleanedText.startsWith('```json')) {
+            cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanedText.startsWith('```')) {
+            cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+
+        let object;
+        try {
+            object = JSON.parse(cleanedText);
+        } catch (parseError) {
+            console.error('JSON Parse Error:', parseError, 'Text:', text);
+            throw new Error('La réponse de l\'IA n\'est pas un JSON valide.');
+        }
 
         return NextResponse.json(object);
 
     } catch (error: any) {
-        console.error('Groq API Error:', error);
+        console.error('Groq API Error Details:', {
+            message: error.message,
+            stack: error.stack,
+            cause: error.cause,
+            apiKeyPrefix: process.env.GROQ_API_KEY ? process.env.GROQ_API_KEY.substring(0, 4) : 'undefined'
+        });
         return NextResponse.json(
-            { error: error.message || 'Erreur lors du traitement IA' },
+            { error: error.message || 'Erreur lors du traitement IA', details: error.toString() },
             { status: 500 }
         );
     }
 }
 
 export async function GET() {
+    const apiKey = process.env.GROQ_API_KEY;
+    console.log('Checking API Key config:', apiKey ? 'Present' : 'Missing');
     return NextResponse.json({
-        status: process.env.GROQ_API_KEY ? 'configured' : 'missing_key'
+        status: apiKey ? 'configured' : 'missing_key'
     });
 }
