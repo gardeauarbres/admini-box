@@ -11,22 +11,23 @@ interface AIToolbarProps {
 
 const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowResult }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  const [aiAvailable, setAiAvailable] = useState(false);
+  // Suppression de la vérification de configuration au chargement pour toujours afficher la barre
+  // const [aiAvailable, setAiAvailable] = useState(false);
   const [showImproveMenu, setShowImproveMenu] = useState(false);
   const [showTranslateMenu, setShowTranslateMenu] = useState(false);
   const [showSummarizeMenu, setShowSummarizeMenu] = useState(false);
 
-  useEffect(() => {
-    checkAIConfiguration().then(setAiAvailable);
-  }, []);
+  // useEffect(() => {
+  //   checkAIConfiguration().then(setAiAvailable);
+  // }, []);
 
-  if (!aiAvailable) {
-    return null; // Ne pas afficher si OpenAI n'est pas configuré
-  }
+  // if (!aiAvailable) {
+  //   return null; 
+  // }
 
   const handleCorrect = async () => {
     if (!content.trim()) return;
-    
+
     setIsProcessing(true);
     try {
       const result = await correctText(content);
@@ -42,16 +43,16 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
     } catch (error: any) {
       let errorMessage = error.message || 'Erreur inconnue';
-      
+
       // Messages d'erreur plus clairs
       if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Veuillez réessayer dans quelques minutes.';
+        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
       } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API OpenAI invalide. Vérifiez votre configuration dans .env.local';
+        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
       } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur OpenAI. Réessayez plus tard.';
+        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
       }
-      
+
       if (onShowResult) {
         onShowResult(errorMessage, 'error');
       }
@@ -62,7 +63,7 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
 
   const handleImprove = async (style: 'professional' | 'simple' | 'clear' | 'concise') => {
     if (!content.trim()) return;
-    
+
     setIsProcessing(true);
     setShowImproveMenu(false);
     try {
@@ -73,16 +74,16 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
     } catch (error: any) {
       let errorMessage = error.message || 'Erreur inconnue';
-      
+
       // Messages d'erreur plus clairs
       if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Veuillez réessayer dans quelques minutes.';
+        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
       } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API OpenAI invalide. Vérifiez votre configuration dans .env.local';
+        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
       } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur OpenAI. Réessayez plus tard.';
+        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
       }
-      
+
       if (onShowResult) {
         onShowResult(errorMessage, 'error');
       }
@@ -98,7 +99,7 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
       return;
     }
-    
+
     setIsProcessing(true);
     setShowSummarizeMenu(false);
     try {
@@ -108,16 +109,16 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
     } catch (error: any) {
       let errorMessage = error.message || 'Erreur inconnue';
-      
+
       // Messages d'erreur plus clairs
       if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Veuillez réessayer dans quelques minutes.';
+        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
       } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API OpenAI invalide. Vérifiez votre configuration dans .env.local';
+        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
       } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur OpenAI. Réessayez plus tard.';
+        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
       }
-      
+
       if (onShowResult) {
         onShowResult(errorMessage, 'error');
       }
@@ -128,7 +129,7 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
 
   const handleTranslate = async (targetLanguage: string) => {
     if (!content.trim()) return;
-    
+
     setIsProcessing(true);
     setShowTranslateMenu(false);
     try {
@@ -139,16 +140,16 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
     } catch (error: any) {
       let errorMessage = error.message || 'Erreur inconnue';
-      
+
       // Messages d'erreur plus clairs
       if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Veuillez réessayer dans quelques minutes.';
+        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
       } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API OpenAI invalide. Vérifiez votre configuration dans .env.local';
+        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
       } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur OpenAI. Réessayez plus tard.';
+        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
       }
-      
+
       if (onShowResult) {
         onShowResult(errorMessage, 'error');
       }
@@ -172,13 +173,13 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       <span style={{ fontSize: '0.85rem', color: 'var(--secondary)', marginRight: '0.5rem' }}>
         🤖 IA:
       </span>
-      
+
       <button
         onClick={handleCorrect}
         disabled={isProcessing || !content.trim()}
         className="btn btn-secondary"
-        style={{ 
-          padding: '0.4rem 0.8rem', 
+        style={{
+          padding: '0.4rem 0.8rem',
           fontSize: '0.8rem',
           opacity: isProcessing || !content.trim() ? 0.5 : 1,
           cursor: isProcessing || !content.trim() ? 'not-allowed' : 'pointer'
@@ -193,8 +194,8 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
           onClick={() => setShowImproveMenu(!showImproveMenu)}
           disabled={isProcessing || !content.trim()}
           className="btn btn-secondary"
-          style={{ 
-            padding: '0.4rem 0.8rem', 
+          style={{
+            padding: '0.4rem 0.8rem',
             fontSize: '0.8rem',
             opacity: isProcessing || !content.trim() ? 0.5 : 1
           }}
@@ -253,8 +254,8 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
           onClick={() => setShowSummarizeMenu(!showSummarizeMenu)}
           disabled={isProcessing || !content.trim() || content.length < 100}
           className="btn btn-secondary"
-          style={{ 
-            padding: '0.4rem 0.8rem', 
+          style={{
+            padding: '0.4rem 0.8rem',
             fontSize: '0.8rem',
             opacity: isProcessing || !content.trim() || content.length < 100 ? 0.5 : 1
           }}
@@ -306,8 +307,8 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
           onClick={() => setShowTranslateMenu(!showTranslateMenu)}
           disabled={isProcessing || !content.trim()}
           className="btn btn-secondary"
-          style={{ 
-            padding: '0.4rem 0.8rem', 
+          style={{
+            padding: '0.4rem 0.8rem',
             fontSize: '0.8rem',
             opacity: isProcessing || !content.trim() ? 0.5 : 1
           }}
