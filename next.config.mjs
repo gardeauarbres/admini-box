@@ -1,6 +1,14 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-    /* config options here */
+    images: {
+        remotePatterns: [
+            {
+                protocol: 'https',
+                hostname: 'www.gardeauarbres.fr',
+                pathname: '/assets/images/**',
+            },
+        ],
+    },
 };
 
 export default nextConfig;

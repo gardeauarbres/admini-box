@@ -147,6 +147,55 @@ export default function OrganismForm({
         </div>
       </div>
 
+      {/* SECTION RAPPELS / CALENDRIER */}
+      <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid var(--card-border)' }}>
+        <h4 style={{ fontSize: '1rem', marginBottom: '1rem', color: 'var(--accent)' }}>📅 Rappel & Calendrier</h4>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
+
+          {/* Date de rappel */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--secondary)' }}>
+              Date limite / Rappel
+            </label>
+            <input
+              type="date"
+              {...register('reminderDate')}
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: 'var(--radius)',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--foreground)'
+              }}
+            />
+            <p style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>
+              Le rappel s'effacera automatiquement une fois la date passée.
+            </p>
+          </div>
+
+          {/* Message de rappel */}
+          <div>
+            <label style={{ display: 'block', marginBottom: '0.5rem', fontSize: '0.9rem', color: 'var(--secondary)' }}>
+              Note pour le rappel (optionnel)
+            </label>
+            <input
+              type="text"
+              {...register('reminderMessage')}
+              placeholder="Ex: Payer avant midi..."
+              style={{
+                width: '100%',
+                padding: '0.75rem',
+                borderRadius: 'var(--radius)',
+                background: 'var(--input-bg)',
+                border: '1px solid var(--card-border)',
+                color: 'var(--foreground)'
+              }}
+            />
+          </div>
+        </div>
+      </div>
+
       <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
         <button
           type="submit"

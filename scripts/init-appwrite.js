@@ -38,7 +38,8 @@ async function init() {
         const collections = [
             { id: 'documents', name: 'Documents' },
             { id: 'transactions', name: 'Transactions' },
-            { id: 'organisms', name: 'Organisms' }
+            { id: 'organisms', name: 'Organisms' },
+            { id: 'documents_editor', name: 'Documents Editor' }
         ];
 
         for (const col of collections) {
@@ -110,6 +111,25 @@ async function init() {
             try {
                 await databases.createStringAttribute(DB_ID, 'organisms', attr.key, attr.size, attr.required);
                 console.log(`Attribute ${attr.key} created for organisms`);
+            } catch (e) {
+                // Attribute might already exist
+            }
+        }
+
+        // Documents Editor Attributes
+        const editorAttrs = [
+            { key: 'userId', type: 'string', size: 255, required: true },
+            { key: 'title', type: 'string', size: 255, required: true },
+            { key: 'content', type: 'string', size: 1000000, required: true },
+            { key: 'format', type: 'string', size: 50, required: false },
+            { key: 'metadata', type: 'string', size: 5000, required: false },
+            { key: 'settings', type: 'string', size: 5000, required: false },
+        ];
+
+        for (const attr of editorAttrs) {
+            try {
+                await databases.createStringAttribute(DB_ID, 'documents_editor', attr.key, attr.size, attr.required);
+                console.log(`Attribute ${attr.key} created for documents_editor`);
             } catch (e) {
                 // Attribute might already exist
             }

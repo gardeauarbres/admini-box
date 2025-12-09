@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateText } from 'ai';
+import { groq } from '@ai-sdk/groq';
 
 /**
- * Endpoint pour traduire du texte avec OpenAI
+ * Endpoint pour traduire du texte avec Groq (via Vercel AI SDK)
  * 
  * POST /api/ai/translate
  * Body: { text: string, targetLanguage: string }
@@ -9,11 +11,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    
+    const apiKey = process.env.GROQ_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Clé API Groq non configurée' },
         { status: 500 }
       );
     }
@@ -30,73 +32,33 @@ export async function POST(request: NextRequest) {
 
     if (text.length > 5000) {
       return NextResponse.json(
-        { error: 'Text too long. Maximum 5000 characters.' },
+        { error: 'Texte trop long. Maximum 5000 caractères.' },
         { status: 400 }
       );
     }
 
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'Tu es un expert traducteur. Traduis le texte fourni de manière précise et naturelle, en conservant le ton et le style.',
-          },
-          {
-            role: 'user',
-            content: `Traduis ce texte français en ${targetLanguage} :\n\n${text}`,
-          },
-        ],
-        temperature: 0.3,
-        max_tokens: Math.min(text.length * 2, 2000),
-      }),
+    const { text: translatedText } = await generateText({
+      model: groq('llama-3.3-70b-versatile'),
+      system: 'Tu es un expert traducteur. Traduis le texte fourni de manière précise et naturelle, en conservant le ton et le style. Retourne uniquement la traduction.',
+      prompt: `Traduis ce texte français en ${targetLanguage} :\n\n${text}`,
+      temperature: 0.3,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { message: errorText };
-      }
-      
-      let errorMessage = 'OpenAI API error';
-      if (response.status === 401) {
-        errorMessage = 'Clé API OpenAI invalide ou expirée. Vérifiez votre clé dans .env.local';
-      } else if (response.status === 429) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Réessayez plus tard.';
-      } else if (errorData.error?.message) {
-        errorMessage = errorData.error.message;
-      }
-      
-      return NextResponse.json(
-        { error: errorMessage, details: errorData, status: response.status },
-        { status: response.status }
-      );
+    if (!translatedText) {
+      throw new Error('Réponse vide de l\'IA');
     }
-
-    const data = await response.json();
-    const translatedText = data.choices[0]?.message?.content?.trim() || text;
 
     return NextResponse.json({
       success: true,
       originalText: text,
-      translatedText,
+      translatedText: translatedText.trim(),
       targetLanguage,
     });
   } catch (error: any) {
     console.error('Translation error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
+      { error: 'Erreur lors du traitement IA', message: error.message },
       { status: 500 }
     );
   }
 }
-

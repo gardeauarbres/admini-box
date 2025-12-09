@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
-import { useOrganisms } from '@/lib/queries';
+import { useOrganisms, useUpdateOrganism } from '@/lib/queries';
 import { useAuth } from '@/context/AuthContext';
 import { usePersistentNotifications } from '@/context/PersistentNotificationsContext';
 import { getFromStorage, saveToStorage } from '@/lib/storage';
@@ -11,13 +11,14 @@ const PROCESSED_REMINDERS_KEY = 'processed_reminders';
 export default function ReminderNotifications() {
   const { user } = useAuth();
   const { data: organisms = [] } = useOrganisms(user?.$id || null);
+  const updateMutation = useUpdateOrganism();
   const { addNotification, notifications } = usePersistentNotifications();
   const hasCheckedRef = useRef(false);
 
   const reminders = useMemo(() => {
     const today = new Date();
     today.setHours(0, 0, 0, 0);
-    
+
     return organisms
       .filter(org => org.reminderDate)
       .map(org => {
@@ -25,7 +26,7 @@ export default function ReminderNotifications() {
         reminderDate.setHours(0, 0, 0, 0);
         const diffTime = reminderDate.getTime() - today.getTime();
         const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-        
+
         return {
           organismId: org.$id,
           organism: org,
@@ -45,7 +46,7 @@ export default function ReminderNotifications() {
     // Ne pas vérifier trop souvent (minimum 1 minute entre les vérifications)
     const now = Date.now();
     const oneMinuteAgo = now - 60 * 1000;
-    
+
     if (lastCheckRef.current > oneMinuteAgo && hasCheckedRef.current) {
       return;
     }
@@ -57,12 +58,12 @@ export default function ReminderNotifications() {
 
     // Créer une signature des rappels pour détecter les changements
     const remindersSignature = JSON.stringify(reminders.map(r => `${r.organismId}-${r.daysUntil}`));
-    
+
     // Ne vérifier que si les rappels ont changé
     if (remindersSignature === remindersRef.current && hasCheckedRef.current) {
       return;
     }
-    
+
     remindersRef.current = remindersSignature;
     lastCheckRef.current = now;
 
@@ -78,10 +79,10 @@ export default function ReminderNotifications() {
     // Vérifier chaque rappel
     reminders.forEach(reminder => {
       const { organismId, organism, daysUntil, isOverdue, isToday, isSoon } = reminder;
-      
+
       // Créer une clé unique pour ce rappel (basée sur l'organisme et le jour)
       const reminderKey = `${organismId}-${daysUntil}`;
-      
+
       // Vérifier si ce rappel a déjà été traité aujourd'hui
       const lastProcessed = cleanedProcessed[reminderKey];
       if (lastProcessed && (now - lastProcessed) < 24 * 60 * 60 * 1000) {
@@ -92,24 +93,31 @@ export default function ReminderNotifications() {
       const notificationMessage = isOverdue
         ? `Rappel dépassé pour ${organism.name}${organism.reminderMessage ? `: ${organism.reminderMessage}` : ''}`
         : isToday
-        ? `Rappel aujourd'hui pour ${organism.name}${organism.reminderMessage ? `: ${organism.reminderMessage}` : ''}`
-        : `Rappel dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''} pour ${organism.name}${organism.reminderMessage ? `: ${organism.reminderMessage}` : ''}`;
+          ? `Rappel aujourd'hui pour ${organism.name}${organism.reminderMessage ? `: ${organism.reminderMessage}` : ''}`
+          : `Rappel dans ${daysUntil} jour${daysUntil > 1 ? 's' : ''} pour ${organism.name}${organism.reminderMessage ? `: ${organism.reminderMessage}` : ''}`;
 
-      // Ne pas vérifier dans notifications car cela peut changer à chaque render
-      // On se fie uniquement à processedReminders
-      
       if (isOverdue) {
-        addNotification(
-          notificationMessage,
-          'error',
-          {
-            title: 'Rappel dépassé',
-            category: 'organismes',
-            priority: 'high',
-            actionUrl: '/',
-            actionLabel: 'Voir l\'organisme',
-          }
-        );
+        if (user) {
+          // Nettoyage automatique du rappel périmé
+          updateMutation.mutate({
+            id: organismId,
+            userId: user.$id,
+            updates: {
+              reminderDate: undefined, // Efface la date
+              reminderMessage: undefined // Efface le message
+            }
+          });
+
+          addNotification(
+            `Rappel périmé effacé pour ${organism.name}.`,
+            'system',
+            {
+              title: 'Rappel Auto-Nettoyé',
+              category: 'system',
+              priority: 'low',
+            }
+          );
+        }
         cleanedProcessed[reminderKey] = now;
       } else if (isToday) {
         addNotification(

@@ -1,7 +1,9 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { generateText } from 'ai';
+import { groq } from '@ai-sdk/groq';
 
 /**
- * Endpoint pour améliorer le style et la rédaction avec OpenAI
+ * Endpoint pour améliorer le style et la rédaction avec Groq (via Vercel AI SDK)
  * 
  * POST /api/ai/improve
  * Body: { text: string, style?: 'professional' | 'simple' | 'clear' | 'concise' }
@@ -9,11 +11,11 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export async function POST(request: NextRequest) {
   try {
-    const apiKey = process.env.OPENAI_API_KEY;
-    
+    const apiKey = process.env.GROQ_API_KEY;
+
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'OpenAI API key not configured' },
+        { error: 'Clé API Groq non configurée' },
         { status: 500 }
       );
     }
@@ -30,7 +32,7 @@ export async function POST(request: NextRequest) {
 
     if (text.length > 5000) {
       return NextResponse.json(
-        { error: 'Text too long. Maximum 5000 characters.' },
+        { error: 'Texte trop long. Maximum 5000 caractères.' },
         { status: 400 }
       );
     }
@@ -42,70 +44,28 @@ export async function POST(request: NextRequest) {
       concise: 'Raccourcis ce texte en conservant toutes les informations importantes.',
     };
 
-    const instruction = styleInstructions[style] || styleInstructions.professional;
-
-    const response = await fetch('https://api.openai.com/v1/chat/completions', {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        model: 'gpt-3.5-turbo',
-        messages: [
-          {
-            role: 'system',
-            content: 'Tu es un expert en rédaction française. Améliore le style et la qualité du texte fourni selon les instructions, en conservant le sens original.',
-          },
-          {
-            role: 'user',
-            content: `${instruction}\n\nTexte :\n${text}`,
-          },
-        ],
-        temperature: 0.5,
-        max_tokens: Math.min(text.length * 2, 2000),
-      }),
+    const { text: improvedText } = await generateText({
+      model: groq('llama-3.3-70b-versatile'),
+      system: 'Tu es un expert en rédaction française. Améliore le style et la qualité du texte fourni selon les instructions, en conservant le sens original. Retourne uniquement le texte amélioré.',
+      prompt: `${styleInstructions[style] || styleInstructions.professional}\n\nTexte:\n${text}`,
+      temperature: 0.5,
     });
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      let errorData;
-      try {
-        errorData = JSON.parse(errorText);
-      } catch {
-        errorData = { message: errorText };
-      }
-      
-      let errorMessage = 'OpenAI API error';
-      if (response.status === 401) {
-        errorMessage = 'Clé API OpenAI invalide ou expirée. Vérifiez votre clé dans .env.local';
-      } else if (response.status === 429) {
-        errorMessage = 'Limite de requêtes OpenAI atteinte. Réessayez plus tard.';
-      } else if (errorData.error?.message) {
-        errorMessage = errorData.error.message;
-      }
-      
-      return NextResponse.json(
-        { error: errorMessage, details: errorData, status: response.status },
-        { status: response.status }
-      );
+    if (!improvedText) {
+      throw new Error('Réponse vide de l\'IA');
     }
-
-    const data = await response.json();
-    const improvedText = data.choices[0]?.message?.content?.trim() || text;
 
     return NextResponse.json({
       success: true,
       originalText: text,
-      improvedText,
+      improvedText: improvedText.trim(),
       style,
     });
   } catch (error: any) {
     console.error('Improvement error:', error);
     return NextResponse.json(
-      { error: 'Internal server error', message: error.message },
+      { error: 'Erreur lors du traitement IA', message: error.message },
       { status: 500 }
     );
   }
 }
-

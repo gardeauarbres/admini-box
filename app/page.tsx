@@ -311,6 +311,32 @@ export default function Home() {
       <header style={{ marginBottom: '3rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
           <NotificationBell />
+          <a
+            href="https://www.gardeauarbres.fr/"
+            target="_blank"
+            rel="noopener noreferrer"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              overflow: 'hidden',
+              border: '2px solid var(--primary)',
+              transition: 'transform 0.2s ease',
+              cursor: 'pointer'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+            title="Visiter Gard Eau Arbres"
+          >
+            <img
+              src="/logo_gard_eau_arbres_fini200x200.png"
+              alt="Gard Eau Arbres"
+              style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+            />
+          </a>
           <h1 className="section-title" style={{ margin: 0, flex: 1 }}>Tableau de Bord Unifié</h1>
         </div>
         <p style={{ color: 'var(--secondary)' }}>
@@ -573,6 +599,6 @@ export default function Home() {
           </>
         )}
       </section>
-    </div>
+    </div >
   );
 }

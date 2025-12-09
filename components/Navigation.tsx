@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { usePathname } from 'next/navigation';
@@ -46,8 +47,8 @@ export default function Navigation() {
 
     if (!user) {
         return (
-            <nav 
-                className="glass-panel" 
+            <nav
+                className="glass-panel"
                 role="navigation"
                 aria-label="Navigation principale"
                 style={{
@@ -64,7 +65,27 @@ export default function Navigation() {
                     gap: '1rem'
                 }}
             >
-                <div style={{ fontWeight: 'bold', fontSize: '1.25rem' }}>AdminiBox</div>
+                <Link
+                    href="https://www.gardeauarbres.fr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="logo-link"
+                    style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}
+                >
+                    <Image
+                        src="https://www.gardeauarbres.fr/assets/images/logo_gard_eau_arbres_fini200x200.png"
+                        alt="Logo Gard Eau Arbres"
+                        width={40}
+                        height={40}
+                        style={{
+                            borderRadius: '50%',
+                            transition: 'transform 0.2s ease, filter 0.2s ease'
+                        }}
+                    />
+                    <span style={{ marginLeft: '0.75rem', fontWeight: 'bold', fontSize: '1.25rem' }}>
+                        AdminiBox
+                    </span>
+                </Link>
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
                     <Link href="/login" className="btn btn-secondary" style={{ fontSize: '0.9rem', padding: '0.5rem 1rem' }}>
                         Connexion
@@ -79,8 +100,8 @@ export default function Navigation() {
 
     return (
         <>
-            <nav 
-                className="glass-panel" 
+            <nav
+                className="glass-panel"
                 role="navigation"
                 aria-label="Navigation principale"
                 style={{
@@ -98,15 +119,34 @@ export default function Navigation() {
                 }}
             >
                 {/* Logo */}
-                <Link href="/" style={{ fontWeight: 'bold', fontSize: '1.25rem', textDecoration: 'none', color: 'var(--foreground)' }}>
-                    AdminiBox
+                {/* Logo */}
+                <Link
+                    href="https://www.gardeauarbres.fr"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="logo-link"
+                    style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'var(--foreground)' }}
+                >
+                    <Image
+                        src="https://www.gardeauarbres.fr/assets/images/logo_gard_eau_arbres_fini200x200.png"
+                        alt="Logo Gard Eau Arbres"
+                        width={40}
+                        height={40}
+                        style={{
+                            borderRadius: '50%',
+                            transition: 'transform 0.2s ease, filter 0.2s ease'
+                        }}
+                    />
+                    <span style={{ marginLeft: '0.75rem', fontWeight: 'bold', fontSize: '1.25rem' }}>
+                        AdminiBox
+                    </span>
                 </Link>
 
                 {/* Desktop Navigation */}
-                <div style={{ 
-                    display: 'flex', 
-                    gap: '0.5rem', 
-                    alignItems: 'center', 
+                <div style={{
+                    display: 'flex',
+                    gap: '0.5rem',
+                    alignItems: 'center',
                     flexWrap: 'wrap',
                     flex: 1,
                     justifyContent: 'center'
@@ -114,10 +154,10 @@ export default function Navigation() {
                     {/* Recherche - Bouton dépliable */}
                     <div style={{ position: 'relative' }}>
                         {showSearch ? (
-                            <div style={{ 
-                                position: 'absolute', 
-                                top: '100%', 
-                                left: 0, 
+                            <div style={{
+                                position: 'absolute',
+                                top: '100%',
+                                left: 0,
                                 marginTop: '0.5rem',
                                 width: '300px',
                                 zIndex: 100
@@ -147,8 +187,8 @@ export default function Navigation() {
                         <button
                             onClick={() => setShowSearch(!showSearch)}
                             className="btn btn-secondary"
-                            style={{ 
-                                fontSize: '1rem', 
+                            style={{
+                                fontSize: '1rem',
                                 padding: '0.5rem 0.75rem',
                                 minWidth: 'auto'
                             }}
@@ -160,12 +200,12 @@ export default function Navigation() {
                     </div>
 
                     {/* Liens de navigation - Icônes uniquement sur desktop */}
-                    <div style={{ 
-                        display: 'none', 
+                    <div style={{
+                        display: 'none',
                         gap: '0.25rem',
                         alignItems: 'center'
                     }}
-                    className="desktop-nav"
+                        className="desktop-nav"
                     >
                         {navItems.map((item) => (
                             <Link
@@ -198,8 +238,8 @@ export default function Navigation() {
                         <button
                             onClick={toggleTheme}
                             className="btn btn-secondary"
-                            style={{ 
-                                fontSize: '1rem', 
+                            style={{
+                                fontSize: '1rem',
                                 padding: '0.5rem 0.75rem',
                                 minWidth: 'auto'
                             }}
@@ -208,13 +248,13 @@ export default function Navigation() {
                         >
                             {theme === 'dark' ? '☀️' : '🌙'}
                         </button>
-                        
+
                         {/* Menu hamburger pour mobile */}
                         <button
                             className="menu-toggle btn btn-secondary"
                             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            style={{ 
-                                fontSize: '1.2rem', 
+                            style={{
+                                fontSize: '1.2rem',
                                 padding: '0.5rem 0.75rem',
                                 minWidth: 'auto',
                                 display: 'flex',
@@ -231,7 +271,7 @@ export default function Navigation() {
 
             {/* Menu mobile déroulant */}
             {isMobileMenuOpen && (
-                <div 
+                <div
                     className="mobile-menu glass-panel"
                     style={{
                         position: 'fixed',
@@ -289,10 +329,10 @@ export default function Navigation() {
                     ))}
 
                     {/* Séparateur */}
-                    <div style={{ 
-                        height: '1px', 
-                        background: 'var(--card-border)', 
-                        margin: '0.5rem 0' 
+                    <div style={{
+                        height: '1px',
+                        background: 'var(--card-border)',
+                        margin: '0.5rem 0'
                     }} />
 
                     {/* Actions */}
@@ -331,6 +371,13 @@ export default function Navigation() {
             )}
 
             <style jsx>{`
+                .logo-link:hover img {
+                    transform: scale(1.1);
+                    filter: brightness(1.1);
+                }
+                .logo-link:active img {
+                    transform: scale(0.95);
+                }
                 @media (min-width: 768px) {
                     .desktop-nav {
                         display: flex !important;
