@@ -43,7 +43,7 @@ export default function FinancePage() {
                 body: JSON.stringify({
                     income: stats.income,
                     expenses: stats.expense,
-                    balance: stats.income + stats.expense,
+                    balance: stats.income - stats.expense,
                     transactions: transactions.slice(0, 5) // Send top 5 transactions context
                 })
             });
@@ -83,8 +83,8 @@ export default function FinancePage() {
                     </div>
                     <div className="glass-panel" style={{ padding: '1.5rem' }}>
                         <h3 style={{ color: 'var(--secondary)', fontSize: '0.9rem', marginBottom: '0.5rem' }}>Solde</h3>
-                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: (stats.income + stats.expense) >= 0 ? 'var(--success)' : 'var(--danger)' }}>
-                            {(stats.income + stats.expense).toFixed(2)} €
+                        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: (stats.income - stats.expense) >= 0 ? 'var(--success)' : 'var(--danger)' }}>
+                            {(stats.income - stats.expense).toFixed(2)} €
                         </div>
                     </div>
                     <div className="glass-panel" style={{ padding: '1.5rem' }}>
@@ -130,6 +130,13 @@ export default function FinancePage() {
                     </div>
                 </div>
 
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+                    {/* Graphiques financiers */}
+                    <div className="glass-panel" style={{ padding: '1.5rem', gridColumn: '1 / -1' }}>
+                        <FinancialCharts transactions={transactions} />
+                    </div>
+                </div>
+
                 <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
                     <button
                         onClick={handleAnalyze}
@@ -152,8 +159,7 @@ export default function FinancePage() {
                     </div>
                 )}
 
-                {/* Graphiques financiers */}
-                <FinancialCharts transactions={transactions} />
+
 
                 {/* Table des transactions */}
                 <FinanceTable onStatsUpdate={handleStatsUpdate} />

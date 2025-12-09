@@ -13,6 +13,8 @@ import {
   YAxis,
   CartesianGrid,
   Tooltip,
+  AreaChart,
+  Area,
   ResponsiveContainer
 } from 'recharts';
 import type { Transaction } from '@/lib/queries';
@@ -112,36 +114,48 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
             📈 Évolution du Solde
           </h3>
           <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={balanceData} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
+            <AreaChart data={balanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="colorSolde" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
+                  <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
               <XAxis
                 dataKey="date"
                 stroke="var(--secondary)"
                 style={{ fontSize: '0.75rem' }}
+                tickLine={false}
+                axisLine={false}
               />
               <YAxis
                 stroke="var(--secondary)"
                 style={{ fontSize: '0.75rem' }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(value) => `${value}€`}
               />
               <Tooltip
                 contentStyle={{
-                  background: 'var(--card-bg)',
-                  border: '1px solid var(--card-border)',
-                  borderRadius: 'var(--radius)',
-                  color: 'var(--foreground)'
+                  background: 'rgba(255, 255, 255, 0.8)',
+                  backdropFilter: 'blur(8px)',
+                  border: 'none',
+                  borderRadius: '12px',
+                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                  color: 'black'
                 }}
+                formatter={(value: number) => [`${value} €`, 'Solde']}
               />
-              <Line
+              <Area
                 type="monotone"
                 dataKey="solde"
                 stroke={COLORS.primary}
-                strokeWidth={2}
-                name="Solde (€)"
-                isAnimationActive={false}
-                dot={false}
-                activeDot={{ r: 4 }}
+                fillOpacity={1}
+                fill="url(#colorSolde)"
+                isAnimationActive={true}
               />
-            </LineChart>
+            </AreaChart>
           </ResponsiveContainer>
         </div>
       )}
@@ -159,23 +173,24 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
                   data={expenseByCategory}
                   cx="50%"
                   cy="50%"
-                  labelLine={false}
-                  label={({ name, percent }) => `${name}: ${((percent || 0) * 100).toFixed(0)}%`}
+                  innerRadius={60}
                   outerRadius={80}
-                  fill="#8884d8"
+                  paddingAngle={5}
                   dataKey="value"
-                  isAnimationActive={false}
+                  isAnimationActive={true}
                 >
                   {expenseByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}-${entry.name}`} fill={pieColors[index % pieColors.length]} />
+                    <Cell key={`cell-${index}-${entry.name}`} fill={pieColors[index % pieColors.length]} stroke="none" />
                   ))}
                 </Pie>
                 <Tooltip
                   contentStyle={{
-                    background: 'var(--card-bg)',
-                    border: '1px solid var(--card-border)',
-                    borderRadius: 'var(--radius)',
-                    color: 'var(--foreground)'
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    color: 'black'
                   }}
                   formatter={(value: number) => `${value.toFixed(2)} €`}
                 />
@@ -192,35 +207,44 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
             </h3>
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={incomeVsExpense} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" />
-                <XAxis
-                  dataKey="name"
-                  stroke="var(--secondary)"
-                  style={{ fontSize: '0.75rem' }}
-                />
+                <defs>
+                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.success} stopOpacity={1} />
+                    <stop offset="100%" stopColor={COLORS.success} stopOpacity={0.6} />
+                  </linearGradient>
+                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="0%" stopColor={COLORS.danger} stopOpacity={1} />
+                    <stop offset="100%" stopColor={COLORS.danger} stopOpacity={0.6} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
+                <XAxis width={0} tick={false} axisLine={false} />
                 <YAxis
                   stroke="var(--secondary)"
                   style={{ fontSize: '0.75rem' }}
+                  tickLine={false}
+                  axisLine={false}
                 />
                 <Tooltip
                   contentStyle={{
-                    background: 'var(--card-bg)',
-                    border: '1px solid var(--card-border)',
-                    borderRadius: 'var(--radius)',
-                    color: 'var(--foreground)'
+                    background: 'rgba(255, 255, 255, 0.8)',
+                    backdropFilter: 'blur(8px)',
+                    border: 'none',
+                    borderRadius: '12px',
+                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
+                    color: 'black'
                   }}
-                  formatter={(value: number) => `${value.toFixed(2)} €`}
+                  cursor={{ fill: 'transparent' }}
                 />
                 <Bar
                   dataKey="montant"
-                  fill={COLORS.primary}
-                  radius={[8, 8, 0, 0]}
-                  isAnimationActive={false}
+                  radius={[8, 8, 8, 8]}
+                  isAnimationActive={true}
                 >
                   {incomeVsExpense.map((entry, index) => (
                     <Cell
                       key={`cell-${index}-${entry.name}`}
-                      fill={entry.name === 'Revenus' ? COLORS.success : COLORS.danger}
+                      fill={entry.name === 'Revenus' ? 'url(#colorRevenue)' : 'url(#colorExpense)'}
                     />
                   ))}
                 </Bar>
