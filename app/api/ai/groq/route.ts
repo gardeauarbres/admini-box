@@ -49,6 +49,7 @@ simplifier: Rendre le texte plus simple à comprendre.
 resumer: Rédiger un résumé clair et fidèle.
 extraire_meta: Extraire les informations structurées (JSON metadonnées).
 generer_modele: Générer un courrier ou modèle à partir du contexte.
+generer: Rédiger un contenu complet à partir d'une instruction libre.
 idees: Proposer plusieurs pistes.
 
 Format de sortie attendu
@@ -96,7 +97,7 @@ export async function POST(req: Request) {
             );
         }
 
-        const isStreamingMode = ['ameliorer', 'corriger', 'formaliser', 'simplifier', 'resumer'].includes(body.mode);
+        const isStreamingMode = ['ameliorer', 'corriger', 'formaliser', 'simplifier', 'resumer', 'generer'].includes(body.mode);
 
         if (isStreamingMode) {
             // Mode STREAMING (Texte brut, pour affichage temps réel)

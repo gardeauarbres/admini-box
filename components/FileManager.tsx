@@ -9,8 +9,13 @@ import Pagination from './Pagination';
 import LoadingSpinner from './LoadingSpinner';
 import { exportDocumentsToCSV } from '@/lib/export';
 
-const FileManager: React.FC = () => {
+interface FileManagerProps {
+    viewMode: 'grid' | 'list';
+}
+
+const FileManager: React.FC<FileManagerProps> = ({ viewMode }) => {
     const { user } = useAuth();
+    // ... existing hooks ...
     const { showToast } = useToast();
     const [filter, setFilter] = useState('Tous');
     const [searchQuery, setSearchQuery] = useState('');
@@ -81,7 +86,7 @@ const FileManager: React.FC = () => {
     const filteredFiles = useMemo(() => {
         const lowerSearch = searchQuery.toLowerCase();
         return files.filter(f => {
-            const matchesSearch = searchQuery === '' || 
+            const matchesSearch = searchQuery === '' ||
                 f.name.toLowerCase().includes(lowerSearch) ||
                 f.organism.toLowerCase().includes(lowerSearch);
             const matchesFilter = filter === 'Tous' || f.organism === filter;
@@ -140,8 +145,8 @@ const FileManager: React.FC = () => {
                         </button>
                     </div>
                     {files.length > 0 && (
-                        <button 
-                            onClick={handleExport} 
+                        <button
+                            onClick={handleExport}
                             className="btn btn-secondary"
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                             title="Exporter les documents en CSV"
@@ -173,69 +178,108 @@ const FileManager: React.FC = () => {
                 </div>
             )}
 
-            <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
-                    <thead>
-                        <tr style={{ borderBottom: '1px solid var(--card-border)', textAlign: 'left' }}>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Nom du fichier</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Organisme</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Date</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Taille</th>
-                            <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {paginationData.paginatedFiles.length === 0 ? (
-                            <tr>
-                                <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
-                                    {files.length === 0 
-                                        ? 'Aucun document enregistré'
-                                        : 'Aucun document ne correspond à votre recherche'
-                                    }
-                                </td>
+            {viewMode === 'list' ? (
+                <div style={{ overflowX: 'auto' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
+                        <thead>
+                            <tr style={{ borderBottom: '1px solid var(--card-border)', textAlign: 'left' }}>
+                                <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Nom du fichier</th>
+                                <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Organisme</th>
+                                <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Date</th>
+                                <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Taille</th>
+                                <th style={{ padding: '1rem', color: 'var(--secondary)' }}>Actions</th>
                             </tr>
-                        ) : (
-                            paginationData.paginatedFiles.map(file => (
-                            <tr key={file.$id} style={{ borderBottom: '1px solid var(--card-border)' }}>
-                                <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                                    <span style={{ fontSize: '1.5rem' }}>📄</span>
-                                    {file.name}
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        padding: '0.25rem 0.5rem',
-                                        borderRadius: '4px',
-                                        background: 'var(--form-bg)',
-                                        fontSize: '0.85rem'
-                                    }}>
-                                        {file.organism}
-                                    </span>
-                                </td>
-                                <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{file.date}</td>
-                                <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{file.size}</td>
-                                <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                        </thead>
+                        <tbody>
+                            {paginationData.paginatedFiles.length === 0 ? (
+                                <tr>
+                                    <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
+                                        {files.length === 0
+                                            ? 'Aucun document enregistré'
+                                            : 'Aucun document ne correspond à votre recherche'
+                                        }
+                                    </td>
+                                </tr>
+                            ) : (
+                                paginationData.paginatedFiles.map(file => (
+                                    <tr key={file.$id} style={{ borderBottom: '1px solid var(--card-border)' }}>
+                                        <td style={{ padding: '1rem', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                                            <span style={{ fontSize: '1.5rem' }}>📄</span>
+                                            {file.name}
+                                        </td>
+                                        <td style={{ padding: '1rem' }}>
+                                            <span style={{
+                                                padding: '0.25rem 0.5rem',
+                                                borderRadius: '4px',
+                                                background: 'var(--form-bg)',
+                                                fontSize: '0.85rem'
+                                            }}>
+                                                {file.organism}
+                                            </span>
+                                        </td>
+                                        <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{file.date}</td>
+                                        <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{file.size}</td>
+                                        <td style={{ padding: '1rem', display: 'flex', gap: '0.5rem' }}>
+                                            <button
+                                                onClick={() => handleDownload(file.fileId)}
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                                            >
+                                                Voir
+                                            </button>
+                                            <button
+                                                onClick={() => handleDelete(file.$id, file.fileId)}
+                                                className="btn btn-secondary"
+                                                style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                                                disabled={deleteMutation.isPending}
+                                            >
+                                                Suppr.
+                                            </button>
+                                        </td>
+                                    </tr>
+                                ))
+                            )}
+                        </tbody>
+                    </table>
+                </div>
+            ) : (
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1.5rem' }}>
+                    {paginationData.paginatedFiles.length === 0 ? (
+                        <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)', gridColumn: '1 / -1' }}>
+                            {files.length === 0
+                                ? 'Aucun document enregistré'
+                                : 'Aucun document ne correspond à votre recherche'
+                            }
+                        </div>
+                    ) : (
+                        paginationData.paginatedFiles.map(file => (
+                            <div key={file.$id} className="glass-panel" style={{ padding: '1rem', display: 'flex', flexDirection: 'column', gap: '0.5rem', position: 'relative' }}>
+                                <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📄</div>
+                                <div style={{ fontWeight: 600, wordBreak: 'break-word' }}>{file.name}</div>
+                                <div style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>{file.organism}</div>
+                                <div style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>{file.date} • {file.size}</div>
+                                <div style={{ display: 'flex', gap: '0.5rem', marginTop: 'auto', paddingTop: '1rem' }}>
                                     <button
                                         onClick={() => handleDownload(file.fileId)}
                                         className="btn btn-secondary"
-                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem' }}
+                                        style={{ flex: 1, fontSize: '0.8rem' }}
                                     >
                                         Voir
                                     </button>
                                     <button
                                         onClick={() => handleDelete(file.$id, file.fileId)}
                                         className="btn btn-secondary"
-                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
+                                        style={{ fontSize: '0.8rem', color: 'var(--danger)', borderColor: 'var(--danger)' }}
                                         disabled={deleteMutation.isPending}
                                     >
-                                        Suppr.
+                                        🗑️
                                     </button>
-                                </td>
-                            </tr>
-                            ))
-                        )}
-                    </tbody>
-                </table>
-            </div>
+                                </div>
+                            </div>
+                        ))
+                    )}
+                </div>
+            )}
 
             {paginationData.totalPages > 1 && (
                 <Pagination

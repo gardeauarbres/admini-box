@@ -7,6 +7,7 @@ import { useAuth } from '@/context/AuthContext';
 import { useTheme } from '@/context/ThemeContext';
 import { usePathname } from 'next/navigation';
 import EnhancedGlobalSearch from './EnhancedGlobalSearch';
+import InstallPrompt from './InstallPrompt';
 
 export default function Navigation() {
     const { user, logout } = useAuth();
@@ -332,6 +333,8 @@ export default function Navigation() {
                         background: 'var(--card-border)',
                         margin: '0.5rem 0'
                     }} />
+
+                    <InstallPrompt />
 
                     {/* Actions */}
                     <button

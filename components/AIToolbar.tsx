@@ -14,6 +14,8 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
   const [showImproveMenu, setShowImproveMenu] = useState(false);
   const [showTranslateMenu, setShowTranslateMenu] = useState(false);
   const [showSummarizeMenu, setShowSummarizeMenu] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
+  const [generatePrompt, setGeneratePrompt] = useState("");
 
   // Helper pour le streaming vers l'éditeur
   const streamToEditor = async (
@@ -21,7 +23,8 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
     successMessage: string,
     isSummary: boolean = false
   ) => {
-    if (!content.trim()) return;
+    // On autorise le contenu vide seulement si on est en mode 'generer'
+    if (!content.trim() && payload.mode !== 'generer') return;
 
     setIsProcessing(true);
     // Fermer tous les menus
@@ -33,8 +36,6 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       let accumulatedText = "";
 
       // Si ce n'est pas un résumé, on prépare l'éditeur pour le streaming
-      // (On efface le contenu pour afficher le flux entrant)
-      // Note: pour un résumé, on accumule tout avant d'afficher (limitation de window.confirm)
       if (!isSummary) {
         onContentChange("");
       }
@@ -57,17 +58,12 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       }
 
     } catch (error: any) {
-      // En cas d'erreur, on restaure le contenu original si on écrivait dans l'éditeur
-      // (Sauf si l'utilisateur a déjà écrit par dessus, ce qui est complexe à gérer, 
-      //  mais ici on suppose qu'il attend)
       if (!isSummary) {
-        onContentChange(content); // Restauration basique
-        // Idéalement on aurait un système d'undo/redo plus robuste
+        onContentChange(content); // Restauration basique en cas d'erreur
       }
 
       let errorMessage = error.message || 'Erreur inconnue';
 
-      // Messages d'erreur plus clairs
       if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
         errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
       } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
@@ -82,6 +78,19 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
     } finally {
       setIsProcessing(false);
     }
+  };
+
+  const handleGenerate = async () => {
+    if (!generatePrompt.trim()) return;
+
+    setShowGenerateModal(false);
+    await streamToEditor({
+      mode: 'generer',
+      contenu: '',
+      contexte: generatePrompt,
+      lang: 'fr'
+    }, 'Contenu généré avec succès !');
+    setGeneratePrompt("");
   };
 
   const handleCorrect = async () => {
@@ -115,8 +124,6 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       return;
     }
 
-    // Le résumé reste non-streamé (affiché dans une modale à la fin)
-    // Mais on utilise le générateur pour uniformiser
     await streamToEditor({
       mode: 'resumer',
       contenu: content,
@@ -127,7 +134,7 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
 
   const handleTranslate = async (targetLanguage: string) => {
     await streamToEditor({
-      mode: 'ameliorer', // Utilise ameliorer pour réécrire/traduire
+      mode: 'ameliorer',
       contenu: content,
       contexte: `Traduis ce texte en ${targetLanguage}. Garde le ton administratif.`,
       lang: targetLanguage
@@ -149,6 +156,86 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       <span style={{ fontSize: '0.85rem', color: 'var(--secondary)', marginRight: '0.5rem' }}>
         🤖 IA:
       </span>
+
+      {/* Bouton Assistant Rédacteur */}
+      <button
+        onClick={() => setShowGenerateModal(true)}
+        disabled={isProcessing}
+        className="btn btn-primary"
+        style={{
+          padding: '0.4rem 0.8rem',
+          fontSize: '0.8rem',
+          opacity: isProcessing ? 0.5 : 1,
+          background: 'linear-gradient(135deg, var(--primary), var(--accent))',
+          border: 'none',
+          color: 'white'
+        }}
+        title="Générer un texte depuis une instruction"
+      >
+        ✨ Assistant
+      </button>
+
+      {/* Modal pour le prompt de génération */}
+      {showGenerateModal && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          background: 'rgba(0,0,0,0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 2000
+        }}>
+          <div className="glass-panel" style={{
+            width: '90%',
+            maxWidth: '500px',
+            padding: '1.5rem',
+            background: 'var(--card-bg)'
+          }}>
+            <h3 style={{ marginTop: 0, marginBottom: '1rem' }}>✨ Assistant Rédacteur</h3>
+            <p style={{ fontSize: '0.9rem', color: 'var(--secondary)', marginBottom: '1rem' }}>
+              Décrivez ce que vous voulez rédiger (ex: "Une lettre de résiliation pour ma salle de sport", "Un email de relance pour une facture impayée").
+            </p>
+            <textarea
+              value={generatePrompt}
+              onChange={(e) => setGeneratePrompt(e.target.value)}
+              placeholder="Votre instruction..."
+              style={{
+                width: '100%',
+                height: '100px',
+                padding: '0.75rem',
+                borderRadius: 'var(--radius)',
+                border: '1px solid var(--input-border)',
+                background: 'var(--input-bg)',
+                color: 'var(--foreground)',
+                marginBottom: '1rem',
+                resize: 'none'
+              }}
+              autoFocus
+            />
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '0.5rem' }}>
+              <button
+                onClick={() => setShowGenerateModal(false)}
+                className="btn btn-secondary"
+              >
+                Annuler
+              </button>
+              <button
+                onClick={handleGenerate}
+                className="btn btn-primary"
+                disabled={!generatePrompt.trim()}
+              >
+                Générer
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div style={{ width: '1px', height: '20px', background: 'var(--card-border)', margin: '0 0.5rem' }} />
 
       <button
         onClick={handleCorrect}

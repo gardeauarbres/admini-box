@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useAuth } from '@/context/AuthContext';
 import { useUserProfile } from '@/lib/queries';
@@ -54,13 +55,13 @@ export default function ProfilePage() {
         {/* En-tête du profil avec avatar */}
         <div className="glass-panel" style={{ padding: '2rem', marginBottom: '2rem' }}>
           <div style={{ display: 'flex', gap: '2rem', alignItems: 'center', flexWrap: 'wrap' }}>
-            <AvatarUpload 
-              currentAvatar={profile?.avatar} 
+            <AvatarUpload
+              currentAvatar={profile?.avatar}
               size={100}
             />
             <div style={{ flex: 1 }}>
               <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
-                {profile 
+                {profile
                   ? `${profile.firstName} ${profile.lastName}`
                   : user?.name || 'Utilisateur'
                 }
@@ -78,60 +79,81 @@ export default function ProfilePage() {
           </div>
         </div>
 
-        {/* Onglets */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '0.5rem', 
+        {/* Onglets Animés */}
+        <div style={{
           marginBottom: '2rem',
-          borderBottom: '2px solid var(--card-border)',
-          overflowX: 'auto',
-          paddingBottom: '0.5rem'
+          borderBottom: '1px solid var(--card-border)',
+          position: 'relative'
         }}>
-          {tabs.map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => setActiveTab(tab.id)}
-              className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
-              style={{
-                padding: '0.75rem 1.5rem',
-                borderRadius: activeTab === tab.id ? 'var(--radius) var(--radius) 0 0' : 'var(--radius)',
-                borderBottom: activeTab === tab.id ? '2px solid var(--primary)' : 'none',
-                marginBottom: activeTab === tab.id ? '-2px' : '0',
-                whiteSpace: 'nowrap'
-              }}
-            >
-              {tab.label}
-            </button>
-          ))}
+          <div style={{
+            display: 'flex',
+            gap: '1rem',
+            overflowX: 'auto',
+            paddingBottom: '0.5rem',
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none'
+          }}>
+            {tabs.map(tab => (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id)}
+                style={{
+                  padding: '0.75rem 1rem',
+                  background: 'transparent',
+                  border: 'none',
+                  cursor: 'pointer',
+                  position: 'relative',
+                  color: activeTab === tab.id ? 'var(--primary)' : 'var(--secondary)',
+                  fontWeight: activeTab === tab.id ? 600 : 500,
+                  fontSize: '0.95rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.5rem',
+                  transition: 'color 0.2s',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                <span>{tab.icon}</span>
+                {tab.label.replace(tab.icon + ' ', '')} {/* Hack pour éviter de dupliquer l'icône si déjà dans le label */}
+
+                {activeTab === tab.id && (
+                  <motion.div
+                    layoutId="activeTabUnderline"
+                    style={{
+                      position: 'absolute',
+                      bottom: '-0.5rem',
+                      left: 0,
+                      right: 0,
+                      height: '2px',
+                      backgroundColor: 'var(--primary)',
+                      borderRadius: '2px'
+                    }}
+                  />
+                )}
+              </button>
+            ))}
+          </div>
         </div>
 
-        {/* Contenu des onglets */}
-        <div style={{ animation: 'fadeIn 0.3s ease-out' }}>
-          {activeTab === 'overview' && (
-            <ProfileOverview profile={profile} />
-          )}
-          {activeTab === 'personal' && (
-            <PersonalProfileForm profile={profile} />
-          )}
-          {activeTab === 'professional' && (
-            <ProfessionalProfileForm profile={profile} />
-          )}
-          {activeTab === 'security' && (
-            <SecuritySettings />
-          )}
-          {activeTab === 'activity' && (
-            <ActivityStats />
-          )}
-          {activeTab === 'preferences' && (
-            <UserPreferences />
-          )}
-          {activeTab === 'notifications' && (
-            <EmailNotifications />
-          )}
-          {activeTab === 'export' && (
-            <DataExport />
-          )}
-        </div>
+        {/* Contenu des onglets avec transition */}
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={activeTab}
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            transition={{ duration: 0.2 }}
+          >
+            {activeTab === 'overview' && <ProfileOverview profile={profile} />}
+            {activeTab === 'personal' && <PersonalProfileForm profile={profile} />}
+            {activeTab === 'professional' && <ProfessionalProfileForm profile={profile} />}
+            {activeTab === 'security' && <SecuritySettings />}
+            {activeTab === 'activity' && <ActivityStats />}
+            {activeTab === 'preferences' && <UserPreferences />}
+            {activeTab === 'notifications' && <EmailNotifications />}
+            {activeTab === 'export' && <DataExport />}
+          </motion.div>
+        </AnimatePresence>
       </div>
     </ProtectedRoute>
   );

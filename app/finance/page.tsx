@@ -17,6 +17,47 @@ export default function FinancePage() {
         setStats(newStats);
     }, []);
 
+    const [budget, setBudget] = useState(0);
+    const [isEditingBudget, setIsEditingBudget] = useState(false);
+
+    React.useEffect(() => {
+        const saved = localStorage.getItem('admini_box_budget_limit');
+        if (saved) setBudget(parseFloat(saved));
+    }, []);
+
+    const saveBudget = (val: number) => {
+        setBudget(val);
+        localStorage.setItem('admini_box_budget_limit', val.toString());
+        setIsEditingBudget(false);
+    };
+
+    const [analysisResult, setAnalysisResult] = useState<string | null>(null);
+    const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    const handleAnalyze = async () => {
+        setIsAnalyzing(true);
+        try {
+            const response = await fetch('/api/ai/finance', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    income: stats.income,
+                    expenses: stats.expense,
+                    balance: stats.income + stats.expense,
+                    transactions: transactions.slice(0, 5) // Send top 5 transactions context
+                })
+            });
+            const data = await response.json();
+            if (data.analysis) {
+                setAnalysisResult(data.analysis);
+            }
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setIsAnalyzing(false);
+        }
+    };
+
     return (
         <ProtectedRoute>
             <div>
@@ -46,7 +87,70 @@ export default function FinancePage() {
                             {(stats.income + stats.expense).toFixed(2)} €
                         </div>
                     </div>
+                    <div className="glass-panel" style={{ padding: '1.5rem' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+                            <h3 style={{ color: 'var(--secondary)', fontSize: '0.9rem', margin: 0 }}>Budget Mensuel</h3>
+                            <button onClick={() => setIsEditingBudget(!isEditingBudget)} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '1rem' }}>⚙️</button>
+                        </div>
+
+                        {isEditingBudget ? (
+                            <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                <input
+                                    type="number"
+                                    defaultValue={budget}
+                                    onBlur={(e) => saveBudget(parseFloat(e.target.value))}
+                                    onKeyDown={(e) => { if (e.key === 'Enter') saveBudget(parseFloat(e.currentTarget.value)); }}
+                                    autoFocus
+                                    style={{ width: '100%', padding: '0.25rem', borderRadius: '4px', border: '1px solid var(--input-border)', background: 'var(--input-bg)', color: 'var(--foreground)' }}
+                                />
+                            </div>
+                        ) : (
+                            <>
+                                <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--foreground)' }}>
+                                    {budget > 0 ? `${budget.toFixed(2)} €` : 'Non défini'}
+                                </div>
+                                {budget > 0 && (
+                                    <div style={{ marginTop: '0.5rem' }}>
+                                        <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.75rem', marginBottom: '0.25rem', color: 'var(--secondary)' }}>
+                                            <span>{Math.round((Math.abs(stats.expense) / budget) * 100)}% utilisé</span>
+                                            <span>Reste {Math.max(0, budget - Math.abs(stats.expense)).toFixed(2)} €</span>
+                                        </div>
+                                        <div style={{ height: '6px', background: 'var(--card-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                                            <div style={{
+                                                height: '100%',
+                                                width: `${Math.min(100, (Math.abs(stats.expense) / budget) * 100)}%`,
+                                                background: (Math.abs(stats.expense) > budget) ? 'var(--danger)' : (Math.abs(stats.expense) > budget * 0.8) ? 'var(--warning)' : 'var(--success)',
+                                                transition: 'width 0.5s ease'
+                                            }} />
+                                        </div>
+                                    </div>
+                                )}
+                            </>
+                        )}
+                    </div>
                 </div>
+
+                <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+                    <button
+                        onClick={handleAnalyze}
+                        disabled={isAnalyzing}
+                        className="btn btn-primary"
+                        style={{ background: 'linear-gradient(135deg, var(--primary), var(--accent))', border: 'none', color: 'white' }}
+                    >
+                        {isAnalyzing ? 'Analyse en cours...' : '💡 Analyse IA'}
+                    </button>
+                </div>
+
+                {analysisResult && (
+                    <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent)' }}>
+                        <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            ✨ Le conseil de votre Assistant
+                        </h3>
+                        <div style={{ whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                            {analysisResult}
+                        </div>
+                    </div>
+                )}
 
                 {/* Graphiques financiers */}
                 <FinancialCharts transactions={transactions} />

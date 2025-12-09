@@ -41,6 +41,7 @@ import ReminderNotifications from "@/components/ReminderNotifications";
 import AutoBackup from "@/components/AutoBackup";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 import PageTransition from "@/components/PageTransition";
+import OnboardingOverlay from "@/components/OnboardingOverlay";
 
 export default function RootLayout({
   children,
@@ -63,6 +64,7 @@ export default function RootLayout({
                       <PersistentNotifications />
                       <ReminderNotifications />
                       <AutoBackup />
+                      <OnboardingOverlay />
                       <div className="layout-wrapper">
                         <Navigation />
                         <main className="container">
