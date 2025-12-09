@@ -3,10 +3,10 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
-import { 
-  useTransactions, 
-  useCreateTransaction, 
-  useDeleteTransaction 
+import {
+    useTransactions,
+    useCreateTransaction,
+    useDeleteTransaction
 } from '@/lib/queries';
 import TransactionForm from './TransactionForm';
 import Pagination from './Pagination';
@@ -18,7 +18,7 @@ import type { TransactionFormData } from '@/lib/validations';
 const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense: number }) => void }> = ({ onStatsUpdate }) => {
     const { user } = useAuth();
     const { showToast } = useToast();
-    
+
     // Form state
     const [showForm, setShowForm] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
@@ -57,7 +57,7 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
     const filteredTransactions = useMemo(() => {
         const lowerSearch = searchQuery.toLowerCase();
         return transactions.filter(t => {
-            const matchesSearch = searchQuery === '' || 
+            const matchesSearch = searchQuery === '' ||
                 t.label.toLowerCase().includes(lowerSearch) ||
                 t.category.toLowerCase().includes(lowerSearch);
             const matchesCategory = categoryFilter === 'Tous' || t.category === categoryFilter;
@@ -129,10 +129,10 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
 
             {/* Barre de recherche et filtres */}
             {transactions.length > 0 && (
-                <div style={{ 
-                    display: 'flex', 
-                    gap: '1rem', 
-                    marginBottom: '1.5rem', 
+                <div style={{
+                    display: 'flex',
+                    gap: '1rem',
+                    marginBottom: '1.5rem',
                     flexWrap: 'wrap',
                     alignItems: 'center'
                 }}>
@@ -201,8 +201,8 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
                         + Nouvelle Transaction
                     </button>
                     {transactions.length > 0 && (
-                        <button 
-                            onClick={() => exportTransactionsToCSV(transactions)} 
+                        <button
+                            onClick={() => exportTransactionsToCSV(transactions)}
                             className="btn btn-secondary"
                             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
                             title="Exporter les transactions en CSV"
@@ -213,7 +213,73 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
                 </div>
             )}
 
-            <div style={{ overflowX: 'auto' }}>
+            {/* Vue Mobile (Cartes) */}
+            <div className="visible-mobile" style={{ display: 'none' }}>
+                {paginationData.paginatedTransactions.length === 0 ? (
+                    <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
+                        {transactions.length === 0
+                            ? 'Aucune transaction enregistrée'
+                            : 'Aucune transaction ne correspond à votre recherche'
+                        }
+                    </div>
+                ) : (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                        {paginationData.paginatedTransactions.map(t => (
+                            <div key={t.$id} className="glass-panel" style={{ padding: '1rem', position: 'relative' }}>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
+                                    <span style={{ fontWeight: 600 }}>{t.label}</span>
+                                    <span style={{ fontSize: '0.85rem', color: 'var(--secondary)' }}>{t.date}</span>
+                                </div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <span style={{
+                                        padding: '0.25rem 0.5rem',
+                                        borderRadius: '4px',
+                                        background: 'var(--form-bg)',
+                                        fontSize: '0.8rem'
+                                    }}>
+                                        {t.category}
+                                    </span>
+                                    <span style={{
+                                        fontWeight: 700,
+                                        color: t.type === 'income' ? 'var(--success)' : 'var(--foreground)'
+                                    }}>
+                                        {t.amount > 0 ? '+' : ''}{t.amount.toFixed(2)} €
+                                    </span>
+                                </div>
+                                <button
+                                    onClick={() => handleDelete(t.$id)}
+                                    className="btn btn-secondary"
+                                    style={{
+                                        position: 'absolute',
+                                        top: '0.5rem',
+                                        right: '0.5rem',
+                                        display: 'none' // Masqué par défaut sur mobile pour éviter les clics accidentels ? Non, on peut le mettre en bas.
+                                    }}
+                                >
+                                    X
+                                </button>
+                                <div style={{ marginTop: '0.75rem', textAlign: 'right' }}>
+                                    <button
+                                        onClick={() => handleDelete(t.$id)}
+                                        style={{
+                                            background: 'transparent',
+                                            border: 'none',
+                                            color: 'var(--danger)',
+                                            fontSize: '0.85rem',
+                                            textDecoration: 'underline'
+                                        }}
+                                    >
+                                        Supprimer
+                                    </button>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+
+            {/* Vue Desktop (Tableau) */}
+            <div className="hidden-mobile" style={{ overflowX: 'auto' }}>
                 <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '600px' }}>
                     <thead>
                         <tr style={{ borderBottom: '1px solid var(--card-border)', textAlign: 'left' }}>
@@ -228,7 +294,7 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
                         {paginationData.paginatedTransactions.length === 0 ? (
                             <tr>
                                 <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--secondary)' }}>
-                                    {transactions.length === 0 
+                                    {transactions.length === 0
                                         ? 'Aucune transaction enregistrée'
                                         : 'Aucune transaction ne correspond à votre recherche'
                                     }
@@ -236,38 +302,38 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
                             </tr>
                         ) : (
                             paginationData.paginatedTransactions.map(t => (
-                            <tr key={t.$id} style={{ borderBottom: '1px solid var(--card-border)' }}>
-                                <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{t.date}</td>
-                                <td style={{ padding: '1rem', fontWeight: 500 }}>{t.label}</td>
-                                <td style={{ padding: '1rem' }}>
-                                    <span style={{
-                                        padding: '0.25rem 0.5rem',
-                                        borderRadius: '4px',
-                                        background: 'var(--form-bg)',
-                                        fontSize: '0.85rem'
+                                <tr key={t.$id} style={{ borderBottom: '1px solid var(--card-border)' }}>
+                                    <td style={{ padding: '1rem', color: 'var(--secondary)' }}>{t.date}</td>
+                                    <td style={{ padding: '1rem', fontWeight: 500 }}>{t.label}</td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <span style={{
+                                            padding: '0.25rem 0.5rem',
+                                            borderRadius: '4px',
+                                            background: 'var(--form-bg)',
+                                            fontSize: '0.85rem'
+                                        }}>
+                                            {t.category}
+                                        </span>
+                                    </td>
+                                    <td style={{
+                                        padding: '1rem',
+                                        textAlign: 'right',
+                                        fontWeight: 600,
+                                        color: t.type === 'income' ? 'var(--success)' : 'var(--foreground)'
                                     }}>
-                                        {t.category}
-                                    </span>
-                                </td>
-                                <td style={{
-                                    padding: '1rem',
-                                    textAlign: 'right',
-                                    fontWeight: 600,
-                                    color: t.type === 'income' ? 'var(--success)' : 'var(--foreground)'
-                                }}>
-                                    {t.amount > 0 ? '+' : ''}{t.amount.toFixed(2)} €
-                                </td>
-                                <td style={{ padding: '1rem' }}>
-                                    <button
-                                        onClick={() => handleDelete(t.$id)}
-                                        className="btn btn-secondary"
-                                        style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', color: 'var(--danger)' }}
-                                        disabled={deleteMutation.isPending}
-                                    >
-                                        X
-                                    </button>
-                                </td>
-                            </tr>
+                                        {t.amount > 0 ? '+' : ''}{t.amount.toFixed(2)} €
+                                    </td>
+                                    <td style={{ padding: '1rem' }}>
+                                        <button
+                                            onClick={() => handleDelete(t.$id)}
+                                            className="btn btn-secondary"
+                                            style={{ padding: '0.25rem 0.5rem', fontSize: '0.8rem', color: 'var(--danger)' }}
+                                            disabled={deleteMutation.isPending}
+                                        >
+                                            X
+                                        </button>
+                                    </td>
+                                </tr>
                             ))
                         )}
                     </tbody>

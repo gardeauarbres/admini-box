@@ -128,4 +128,42 @@ export async function checkAIConfiguration(): Promise<boolean> {
   }
 }
 
+/**
+ * Appel API pour le streaming (nouveau)
+ * Retourne un AsyncGenerator qui produit des morceaux de texte au fur et à mesure.
+ */
+export async function* generateContentStream(payload: any): AsyncGenerator<string, void, unknown> {
+  const response = await fetch('/api/ai/groq', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Erreur API IA');
+  }
+
+  // Si on n'est pas en mode streaming (API renvoie JSON), on lit tout d'un coup
+  const contentType = response.headers.get('content-type');
+  if (contentType && contentType.includes('application/json')) {
+    const json = await response.json();
+    yield json.texte_principal || JSON.stringify(json);
+    return;
+  }
+
+  // Lecture du flux (Stream)
+  if (!response.body) throw new Error('Pas de corps de réponse pour le stream');
+
+  const reader = response.body.getReader();
+  const decoder = new TextDecoder();
+
+  while (true) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    const chunk = decoder.decode(value, { stream: true });
+    yield chunk;
+  }
+}
+
 

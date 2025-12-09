@@ -11,6 +11,7 @@ import SkeletonLoader from '@/components/SkeletonLoader';
 import DashboardWidgets from '@/components/DashboardWidgets';
 import FilterPresets from '@/components/FilterPresets';
 import NotificationBell from '@/components/NotificationBell';
+import ThemeToggle from '@/components/ThemeToggle';
 import { exportOrganismsToCSV } from '@/lib/export';
 import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from '@/lib/queries';
@@ -310,6 +311,7 @@ export default function Home() {
     <div>
       <header style={{ marginBottom: '3rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', marginBottom: '0.5rem' }}>
+          <ThemeToggle />
           <NotificationBell />
           <a
             href="https://www.gardeauarbres.fr/"

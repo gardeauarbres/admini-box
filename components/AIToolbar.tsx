@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { correctText, improveText, summarizeText, translateText, checkAIConfiguration } from '@/lib/ai-editor';
+import { correctText, improveText, summarizeText, translateText, checkAIConfiguration, generateContentStream } from '@/lib/ai-editor';
 
 interface AIToolbarProps {
   content: string;
@@ -11,37 +11,60 @@ interface AIToolbarProps {
 
 const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowResult }) => {
   const [isProcessing, setIsProcessing] = useState(false);
-  // Suppression de la vérification de configuration au chargement pour toujours afficher la barre
-  // const [aiAvailable, setAiAvailable] = useState(false);
   const [showImproveMenu, setShowImproveMenu] = useState(false);
   const [showTranslateMenu, setShowTranslateMenu] = useState(false);
   const [showSummarizeMenu, setShowSummarizeMenu] = useState(false);
 
-  // useEffect(() => {
-  //   checkAIConfiguration().then(setAiAvailable);
-  // }, []);
-
-  // if (!aiAvailable) {
-  //   return null; 
-  // }
-
-  const handleCorrect = async () => {
+  // Helper pour le streaming vers l'éditeur
+  const streamToEditor = async (
+    payload: any,
+    successMessage: string,
+    isSummary: boolean = false
+  ) => {
     if (!content.trim()) return;
 
     setIsProcessing(true);
+    // Fermer tous les menus
+    setShowImproveMenu(false);
+    setShowSummarizeMenu(false);
+    setShowTranslateMenu(false);
+
     try {
-      const result = await correctText(content);
-      if (result.changes) {
-        onContentChange(result.correctedText);
+      let accumulatedText = "";
+
+      // Si ce n'est pas un résumé, on prépare l'éditeur pour le streaming
+      // (On efface le contenu pour afficher le flux entrant)
+      // Note: pour un résumé, on accumule tout avant d'afficher (limitation de window.confirm)
+      if (!isSummary) {
+        onContentChange("");
+      }
+
+      for await (const chunk of generateContentStream(payload)) {
+        accumulatedText += chunk;
+        if (!isSummary) {
+          onContentChange(accumulatedText);
+        }
+      }
+
+      if (isSummary) {
         if (onShowResult) {
-          onShowResult('Texte corrigé avec succès !', 'success');
+          onShowResult(accumulatedText, 'summary');
         }
       } else {
         if (onShowResult) {
-          onShowResult('Aucune correction nécessaire.', 'info');
+          onShowResult(successMessage, 'success');
         }
       }
+
     } catch (error: any) {
+      // En cas d'erreur, on restaure le contenu original si on écrivait dans l'éditeur
+      // (Sauf si l'utilisateur a déjà écrit par dessus, ce qui est complexe à gérer, 
+      //  mais ici on suppose qu'il attend)
+      if (!isSummary) {
+        onContentChange(content); // Restauration basique
+        // Idéalement on aurait un système d'undo/redo plus robuste
+      }
+
       let errorMessage = error.message || 'Erreur inconnue';
 
       // Messages d'erreur plus clairs
@@ -61,35 +84,27 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
     }
   };
 
+  const handleCorrect = async () => {
+    await streamToEditor({
+      mode: 'corriger',
+      contenu: content,
+      lang: 'fr'
+    }, 'Texte corrigé avec succès !');
+  };
+
   const handleImprove = async (style: 'professional' | 'simple' | 'clear' | 'concise') => {
-    if (!content.trim()) return;
+    let context = "Amélioration standard";
+    if (style === 'professional') context = "Rendre le ton plus professionnel et administratif.";
+    if (style === 'simple') context = "Simplifier le langage pour être compris de tous.";
+    if (style === 'clear') context = "Clarifier le propos, éviter les ambiguïtés.";
+    if (style === 'concise') context = "Raccourcir et aller à l'essentiel.";
 
-    setIsProcessing(true);
-    setShowImproveMenu(false);
-    try {
-      const result = await improveText(content, style);
-      onContentChange(result.improvedText);
-      if (onShowResult) {
-        onShowResult('Texte amélioré avec succès !', 'success');
-      }
-    } catch (error: any) {
-      let errorMessage = error.message || 'Erreur inconnue';
-
-      // Messages d'erreur plus clairs
-      if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
-      } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
-      } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
-      }
-
-      if (onShowResult) {
-        onShowResult(errorMessage, 'error');
-      }
-    } finally {
-      setIsProcessing(false);
-    }
+    await streamToEditor({
+      mode: style === 'professional' ? 'formaliser' : 'ameliorer',
+      contenu: content,
+      contexte: context,
+      lang: 'fr'
+    }, 'Texte amélioré avec succès !');
   };
 
   const handleSummarize = async (length: 'short' | 'medium' | 'detailed') => {
@@ -100,62 +115,23 @@ const AIToolbar: React.FC<AIToolbarProps> = ({ content, onContentChange, onShowR
       return;
     }
 
-    setIsProcessing(true);
-    setShowSummarizeMenu(false);
-    try {
-      const result = await summarizeText(content, length);
-      if (onShowResult) {
-        onShowResult(result.summary, 'summary');
-      }
-    } catch (error: any) {
-      let errorMessage = error.message || 'Erreur inconnue';
-
-      // Messages d'erreur plus clairs
-      if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
-      } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
-      } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
-      }
-
-      if (onShowResult) {
-        onShowResult(errorMessage, 'error');
-      }
-    } finally {
-      setIsProcessing(false);
-    }
+    // Le résumé reste non-streamé (affiché dans une modale à la fin)
+    // Mais on utilise le générateur pour uniformiser
+    await streamToEditor({
+      mode: 'resumer',
+      contenu: content,
+      contexte: `Longueur souhaitée : ${length}`,
+      lang: 'fr'
+    }, '', true);
   };
 
   const handleTranslate = async (targetLanguage: string) => {
-    if (!content.trim()) return;
-
-    setIsProcessing(true);
-    setShowTranslateMenu(false);
-    try {
-      const result = await translateText(content, targetLanguage);
-      onContentChange(result.translatedText);
-      if (onShowResult) {
-        onShowResult(`Texte traduit en ${targetLanguage} !`, 'success');
-      }
-    } catch (error: any) {
-      let errorMessage = error.message || 'Erreur inconnue';
-
-      // Messages d'erreur plus clairs
-      if (error.message?.includes('429') || error.message?.includes('Too Many Requests')) {
-        errorMessage = 'Limite de requêtes atteinte. Veuillez réessayer dans quelques minutes.';
-      } else if (error.message?.includes('401') || error.message?.includes('invalid')) {
-        errorMessage = 'Clé API IA invalide. Vérifiez votre configuration.';
-      } else if (error.message?.includes('500')) {
-        errorMessage = 'Erreur serveur IA. Réessayez plus tard.';
-      }
-
-      if (onShowResult) {
-        onShowResult(errorMessage, 'error');
-      }
-    } finally {
-      setIsProcessing(false);
-    }
+    await streamToEditor({
+      mode: 'ameliorer', // Utilise ameliorer pour réécrire/traduire
+      contenu: content,
+      contexte: `Traduis ce texte en ${targetLanguage}. Garde le ton administratif.`,
+      lang: targetLanguage
+    }, `Texte traduit en ${targetLanguage} !`);
   };
 
   return (

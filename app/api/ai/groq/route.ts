@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { generateText } from 'ai';
+import { generateText, streamText } from 'ai';
 import { groq } from '@ai-sdk/groq';
 
 const SYSTEM_PROMPT = `Rôle général
@@ -96,31 +96,46 @@ export async function POST(req: Request) {
             );
         }
 
-        const { text } = await generateText({
-            model: groq('llama-3.3-70b-versatile'),
-            system: SYSTEM_PROMPT + "\nIMPORTANT: Retourne UNIQUEMENT le JSON brut, sans balises markdown (```json ... ```) et sans texte avant ou après.",
-            prompt: JSON.stringify(body),
-            temperature: 0.3,
-            // requestOptions supprimé car géré par le SDK
-        });
+        const isStreamingMode = ['ameliorer', 'corriger', 'formaliser', 'simplifier', 'resumer'].includes(body.mode);
 
-        // Nettoyage du markdown éventuel
-        let cleanedText = text.trim();
-        if (cleanedText.startsWith('```json')) {
-            cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-        } else if (cleanedText.startsWith('```')) {
-            cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        if (isStreamingMode) {
+            // Mode STREAMING (Texte brut, pour affichage temps réel)
+            const result = await streamText({
+                model: groq('llama-3.3-70b-versatile'),
+                system: SYSTEM_PROMPT + "\nIMPORTANT: Tu es en mode STREAMING. Retourne UNIQUEMENT le texte du résultat. PAS de JSON. PAS de markdown. PAS de commentaires.",
+                prompt: JSON.stringify(body),
+                temperature: 0.3,
+            });
+
+            return result.toTextStreamResponse();
+
+        } else {
+            // Mode JSON (Ancien fonctionnement pour metadata, etc.)
+            const { text } = await generateText({
+                model: groq('llama-3.3-70b-versatile'),
+                system: SYSTEM_PROMPT + "\nIMPORTANT: Retourne UNIQUEMENT le JSON brut, sans balises markdown (```json ... ```) et sans texte avant ou après.",
+                prompt: JSON.stringify(body),
+                temperature: 0.3,
+            });
+
+            // Nettoyage du markdown éventuel
+            let cleanedText = text.trim();
+            if (cleanedText.startsWith('```json')) {
+                cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (cleanedText.startsWith('```')) {
+                cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+
+            let object;
+            try {
+                object = JSON.parse(cleanedText);
+            } catch (parseError) {
+                console.error('JSON Parse Error:', parseError, 'Text:', text);
+                throw new Error('La réponse de l\'IA n\'est pas un JSON valide.');
+            }
+
+            return NextResponse.json(object);
         }
-
-        let object;
-        try {
-            object = JSON.parse(cleanedText);
-        } catch (parseError) {
-            console.error('JSON Parse Error:', parseError, 'Text:', text);
-            throw new Error('La réponse de l\'IA n\'est pas un JSON valide.');
-        }
-
-        return NextResponse.json(object);
 
     } catch (error: any) {
         console.error('Groq API Error Details:', {
