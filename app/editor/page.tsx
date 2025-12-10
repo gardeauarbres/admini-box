@@ -1,12 +1,12 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import SimpleEditor from '@/components/SimpleEditor';
 import EditorDocumentList from '@/components/EditorDocumentList';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
-export default function EditorPage() {
+function EditorContent() {
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | undefined>(undefined);
     const [showList, setShowList] = useState(true);
 
@@ -47,45 +47,53 @@ export default function EditorPage() {
     };
 
     return (
-        <ProtectedRoute>
-            <div>
-                <header style={{ marginBottom: '3rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
-                        <div>
-                            <h1 className="section-title">Éditeur de Documents (EDO)</h1>
-                            <p style={{ color: 'var(--secondary)' }}>
-                                Créez et gérez vos courriers et documents officiels.
-                            </p>
-                        </div>
-                        {!showList && (
-                            <button
-                                onClick={handleBackToList}
-                                className="btn btn-secondary"
-                                style={{ padding: '0.5rem 1rem' }}
-                            >
-                                ← Retour à la liste
-                            </button>
-                        )}
+        <div>
+            <header style={{ marginBottom: '3rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+                    <div>
+                        <h1 className="section-title">Éditeur de Documents (EDO)</h1>
+                        <p style={{ color: 'var(--secondary)' }}>
+                            Créez et gérez vos courriers et documents officiels.
+                        </p>
                     </div>
-                </header>
+                    {!showList && (
+                        <button
+                            onClick={handleBackToList}
+                            className="btn btn-secondary"
+                            style={{ padding: '0.5rem 1rem' }}
+                        >
+                            ← Retour à la liste
+                        </button>
+                    )}
+                </div>
+            </header>
 
-                {showList ? (
-                    <EditorDocumentList
-                        onSelectDocument={handleSelectDocument}
-                        onNewDocument={handleNewDocument}
-                    />
-                ) : (
-                    <SimpleEditor
-                        documentId={selectedDocumentId}
-                        initialTitle={initialData.title}
-                        initialContent={initialData.content}
-                        onDocumentCreated={(documentId) => {
-                            setSelectedDocumentId(documentId);
-                            showList && setShowList(false);
-                        }}
-                    />
-                )}
-            </div>
+            {showList ? (
+                <EditorDocumentList
+                    onSelectDocument={handleSelectDocument}
+                    onNewDocument={handleNewDocument}
+                />
+            ) : (
+                <SimpleEditor
+                    documentId={selectedDocumentId}
+                    initialTitle={initialData.title}
+                    initialContent={initialData.content}
+                    onDocumentCreated={(documentId) => {
+                        setSelectedDocumentId(documentId);
+                        showList && setShowList(false);
+                    }}
+                />
+            )}
+        </div>
+    );
+}
+
+export default function EditorPage() {
+    return (
+        <ProtectedRoute>
+            <Suspense fallback={<div className="glass-panel p-8 text-center">Chargement de l'éditeur...</div>}>
+                <EditorContent />
+            </Suspense>
         </ProtectedRoute>
     );
 }

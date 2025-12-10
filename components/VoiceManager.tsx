@@ -14,11 +14,12 @@ export default function VoiceManager() {
     // Fix typo in useAuth usage if needed, assuming user is correct.
 
     // Type definition for smarter command map
+    type Router = ReturnType<typeof useRouter>;
     type CommandDef = {
         keys: string[];
         path?: string;
         msg?: string;
-        action?: (cmd: string, router: any) => string;
+        action?: (cmd: string, router: Router) => string;
     };
 
     const COMMAND_MAP: CommandDef[] = [
@@ -76,7 +77,7 @@ export default function VoiceManager() {
             keys: ['éditeur', 'écrire', 'rédiger', 'lettre'],
             path: '/editor',
             msg: "Éditeur de documents",
-            action: (cmd: string, router: any) => {
+            action: (cmd: string, router: Router) => {
                 // Extraction "pour [Organisme]"
                 const match = cmd.match(/pour\s+(?:le\s+|la\s+|l'|les\s+)?([a-z0-9àâäéèêëîïôöùûüç]+)/i);
                 if (match && match[1]) {
