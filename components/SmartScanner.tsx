@@ -12,11 +12,30 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
     const [loadingMessage, setLoadingMessage] = useState<string>('');
     const { showToast } = useToast();
 
-    const convertToBase64 = (file: File): Promise<string> => {
+    const convertAndResize = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
             reader.readAsDataURL(file);
-            reader.onload = () => resolve(reader.result as string);
+            reader.onload = (event) => {
+                const img = new Image();
+                img.src = event.target?.result as string;
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    const MAX_WIDTH = 1024;
+                    const scaleSize = MAX_WIDTH / img.width;
+                    const newWidth = (img.width > MAX_WIDTH) ? MAX_WIDTH : img.width;
+                    const newHeight = (img.width > MAX_WIDTH) ? (img.height * scaleSize) : img.height;
+
+                    canvas.width = newWidth;
+                    canvas.height = newHeight;
+                    const ctx = canvas.getContext('2d');
+                    ctx?.drawImage(img, 0, 0, newWidth, newHeight);
+
+                    // Compress to JPEG 0.7
+                    resolve(canvas.toDataURL('image/jpeg', 0.7));
+                };
+                img.onerror = (err) => reject(err);
+            };
             reader.onerror = error => reject(error);
         });
     };
@@ -25,12 +44,12 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
         if (!acceptedFiles || acceptedFiles.length === 0) return;
 
         setScanning(true);
-        setLoadingMessage('Lecture de l\'image...');
+        setLoadingMessage('Optimisation de l\'image...');
         const file = acceptedFiles[0];
 
         try {
-            // 1. Convertir en Base64
-            const base64Image = await convertToBase64(file);
+            // 1. Convert only (resize client side to avoid Vercel payload limit)
+            const base64Image = await convertAndResize(file);
 
             // 2. Envoyer à l'API Vision (Llama 3.2 11B)
             setLoadingMessage('Analyse par l\'IA (Vision)...');
@@ -42,8 +61,8 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.error || 'Erreur lors de l\'analyse');
+                const errorData = await response.json().catch(() => ({ error: response.statusText }));
+                throw new Error(errorData.error || `Erreur Server: ${response.status}`);
             }
 
             const data = await response.json();
@@ -57,9 +76,9 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
                 file: file
             });
 
-        } catch (error) {
+        } catch (error: any) {
             console.error('OCR Failed:', error);
-            showToast("Échec de l'analyse (Erreur IA/Réseau). Réessayez.", "error");
+            showToast(`Erreur: ${error.message || "Échec inconnu"}`, "error");
         } finally {
             setScanning(false);
             setLoadingMessage('');
