@@ -7,7 +7,7 @@ import SmartScanner from '@/components/SmartScanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { calculateIncome, calculateExpense, formatFileSize } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { useTransactions, useCreateDocument } from '@/lib/queries';
+import { useTransactions, useCreateDocument, useCreateTransaction } from '@/lib/queries';
 import { useToast } from '@/context/ToastContext';
 import { Suspense } from 'react';
 import FinanceURLHandler from '@/components/FinanceURLHandler';
@@ -59,8 +59,10 @@ export default function FinancePage() {
     const [isSavingDoc, setIsSavingDoc] = useState(false);
     const { showToast } = useToast();
     const createDocumentMutation = useCreateDocument();
+    const createTransactionMutation = useTransactions(null); // Just to get query key if needed, but actually we need useCreateTransaction
+    const createTransMutation = useCreateTransaction();
 
-    const handleScanComplete = useCallback(async (data: { amount?: number, date?: string, merchant?: string, file?: File }) => {
+    const handleScanComplete = useCallback(async (data: { amount?: number, date?: string, merchant?: string, category?: string, file?: File }) => {
         let savedFileId = undefined;
 
         if (data.file && user) {
@@ -90,6 +92,30 @@ export default function FinancePage() {
             }
         }
 
+        // Auto-create transaction if critical data is present
+        if (data.amount && data.merchant && user) {
+            try {
+                await createTransMutation.mutateAsync({
+                    userId: user.$id,
+                    data: {
+                        amount: data.amount, // Negatif/Positif ? Vision renvoie souvent positif. Il faut assumer une dépense.
+                        date: data.date || new Date().toISOString().split('T')[0],
+                        label: data.merchant,
+                        category: data.category || 'Autre',
+                        type: 'expense' // Default to expense
+                    }
+                });
+                showToast("Transaction créée automatiquement !", "success");
+
+                // Do NOT open form if successful
+                return;
+            } catch (error) {
+                console.error("Auto-create failed", error);
+                showToast("Erreur création auto, ouverture formulaire", "error");
+                // Fallthrough to open form
+            }
+        }
+
         setTransactionInitialData({
             amount: data.amount,
             date: data.date,
@@ -98,7 +124,7 @@ export default function FinancePage() {
             category: 'Autre'
         });
         setShowTransactionForm(true);
-    }, [user, createDocumentMutation, showToast]);
+    }, [user, createDocumentMutation, createTransMutation, showToast]);
 
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
