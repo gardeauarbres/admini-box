@@ -4,10 +4,15 @@ import React from 'react';
 import { useRouter } from 'next/navigation';
 import VoiceInput from './VoiceInput';
 import { useToast } from '@/context/ToastContext';
+import { useAuth } from '@/context/AuthContext';
 
 export default function VoiceManager() {
     const router = useRouter();
     const { showToast } = useToast();
+    const { user, loading } = useAuth();
+
+    // Security fix: do not render if not logged in
+    if (loading || !user) return null;
 
     const handleCommand = (command: string) => {
         const lowerCmd = command.toLowerCase();
