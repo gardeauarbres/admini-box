@@ -11,32 +11,121 @@ export default function VoiceManager() {
     const { showToast } = useToast();
     const { user, loading } = useAuth();
 
-    // Security fix: do not render if not logged in
-    if (loading || !user) return null;
+    // Fix typo in useAuth usage if needed, assuming user is correct.
+
+    // Type definition for smarter command map
+    type CommandDef = {
+        keys: string[];
+        path?: string;
+        msg?: string;
+        action?: (cmd: string, router: any) => string;
+    };
+
+    const COMMAND_MAP: CommandDef[] = [
+        // --- Navigation Globale ---
+        {
+            keys: ['accueil', 'maison', 'home', 'bord', 'dashboard'],
+            path: '/',
+            msg: "Retour à l'accueil"
+        },
+        {
+            keys: ['profil', 'compte', 'paramètre', 'réglage'],
+            path: '/profile',
+            msg: "Ouverture du profil"
+        },
+        {
+            keys: ['aide', 'faq', 'question', 'support'],
+            path: '/faq',
+            msg: "Centre d'aide ouvert"
+        },
+
+        // --- Module Finances ---
+        {
+            keys: ['finance', 'compta', 'argent', 'banque'],
+            path: '/finance',
+            msg: "Module Finances ouvert"
+        },
+        {
+            keys: ['dépense', 'achat', 'transaction', 'ajouter'],
+            path: '/finance?action=add',
+            msg: "Nouveau formulaire de dépense"
+        },
+        {
+            keys: ['analyse', 'statistique', 'graphique', 'chart'],
+            path: '/analytics',
+            msg: "Consultation des statistiques"
+        },
+
+        // --- Module Documents ---
+        {
+            keys: ['document', 'fichier', 'papier', 'archive'],
+            path: '/documents',
+            msg: "Explorateur de documents"
+        },
+        {
+            keys: ['scanner', 'scan', 'photo', 'ticket'],
+            path: '/finance?action=scan',
+            msg: "Scanner prêt"
+        },
+        {
+            keys: ['mail', 'courrier', 'message', 'inbox'],
+            path: '/mails',
+            msg: "Boîte de réception"
+        },
+        {
+            keys: ['éditeur', 'écrire', 'rédiger', 'lettre'],
+            path: '/editor',
+            msg: "Éditeur de documents",
+            action: (cmd: string, router: any) => {
+                // Extraction "pour [Organisme]"
+                const match = cmd.match(/pour\s+(?:le\s+|la\s+|l'|les\s+)?([a-z0-9àâäéèêëîïôöùûüç]+)/i);
+                if (match && match[1]) {
+                    const organism = match[1];
+                    router.push(`/editor?action=create&organism=${organism}`);
+                    return `Nouveau courrier pour ${organism}`;
+                }
+                router.push('/editor');
+                return "Éditeur de documents";
+            }
+        },
+        {
+            keys: ['admin', 'organisme', 'structure'],
+            path: '/add-organisms',
+            msg: "Administration Organismes"
+        },
+
+        // --- Autres ---
+        {
+            keys: ['magasin', 'market', 'store', 'boutique'],
+            path: '/marketplace',
+            msg: "Marketplace Neon"
+        },
+        {
+            keys: ['légal', 'cgu', 'confidentialité', 'mention'],
+            path: '/legal/privacy',
+            msg: "Pages Légales"
+        }
+    ];
 
     const handleCommand = (command: string) => {
         const lowerCmd = command.toLowerCase();
+        console.log("Voice Command Received:", lowerCmd);
 
-        if (lowerCmd.includes('accueil') || lowerCmd.includes('bord') || lowerCmd.includes('home')) {
-            router.push('/');
-            showToast('Navigation vers l\'accueil', 'success');
-        } else if (lowerCmd.includes('finance') || lowerCmd.includes('compta')) {
-            router.push('/finance');
-            showToast('Navigation vers Finances', 'success');
-        } else if (lowerCmd.includes('compte') || lowerCmd.includes('profil')) {
-            router.push('/profile');
-            showToast('Navigation vers Profil', 'success');
-        } else if ((lowerCmd.includes('ajoute') || lowerCmd.includes('créer')) && (lowerCmd.includes('dépense') || lowerCmd.includes('transaction'))) {
-            router.push('/finance?action=add');
-            showToast('Ouverture du formulaire de dépense...', 'success');
-        } else if (lowerCmd.includes('scan') || lowerCmd.includes('reçu') || lowerCmd.includes('facture')) {
-            router.push('/finance?action=scan');
-            showToast('Activation du scanner...', 'success');
-        } else if (lowerCmd.includes('document') || lowerCmd.includes('fichier')) {
-            router.push('/?tab=documents'); // Assuming dashboard handles tabs or just scrolling
-            showToast('Accès aux documents', 'success');
+        const match = COMMAND_MAP.find(cmd =>
+            cmd.keys.some(k => lowerCmd.includes(k))
+        );
+
+        if (match) {
+            if (match.action) {
+                const feedback = match.action(lowerCmd, router);
+                showToast(feedback, 'success');
+            } else if (match.path) {
+                router.push(match.path);
+                showToast(match.msg || 'Navigation...', 'success');
+            }
         } else {
-            showToast('Commande non reconnue', 'error');
+            // Tentative de fallback ou message d'erreur doux
+            showToast(`Commande non comprise: "${command}"`, 'error');
         }
     };
 

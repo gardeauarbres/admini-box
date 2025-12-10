@@ -51,28 +51,26 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
             // 1. Convert only (resize client side to avoid Vercel payload limit)
             const base64Image = await convertAndResize(file);
 
-            // 2. Envoyer à l'API Vision (Llama 3.2 11B)
-            setLoadingMessage('Analyse par l\'IA (Vision)...');
+            // 2. OCR Désactivé (Demande utilisateur) - On passe directement le fichier
+            // "bon laisson tomber la reconnaissance de texte... je preferer que cette assistant puisse seulement ecouter pour diriger"
+            setLoadingMessage('Traitement du fichier...');
+            await new Promise(r => setTimeout(r, 800)); // Fake delay for UX
 
+            /*
             const response = await fetch('/api/ai/ocr', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ image: base64Image }),
+                 method: 'POST',
+                 headers: { 'Content-Type': 'application/json' },
+                 body: JSON.stringify({ image: base64Image }),
             });
+            ...
+            */
 
-            if (!response.ok) {
-                const errorData = await response.json().catch(() => ({ error: response.statusText }));
-                throw new Error(errorData.error || `Erreur Server: ${response.status}`);
-            }
-
-            const data = await response.json();
-            console.log('Vision Result:', data);
-
+            // On renvoie juste le fichier pour sauvegarde, sans données extraites
             onScanComplete({
-                amount: data.amount,
-                date: data.date,
-                merchant: data.merchant,
-                category: data.category,
+                amount: undefined,
+                date: undefined,
+                merchant: undefined,
+                category: undefined,
                 file: file
             });
 

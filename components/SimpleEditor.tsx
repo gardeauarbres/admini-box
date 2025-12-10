@@ -14,9 +14,11 @@ import AIToolbar from './AIToolbar';
 interface SimpleEditorProps {
     documentId?: string; // Optionnel : pour éditer un document existant
     onDocumentCreated?: (documentId: string) => void; // Callback après création
+    initialTitle?: string;
+    initialContent?: string;
 }
 
-const SimpleEditor: React.FC<SimpleEditorProps> = ({ documentId, onDocumentCreated }) => {
+const SimpleEditor: React.FC<SimpleEditorProps> = ({ documentId, onDocumentCreated, initialTitle, initialContent }) => {
     const { user } = useAuth();
     const { showToast } = useToast();
 
@@ -56,13 +58,18 @@ const SimpleEditor: React.FC<SimpleEditorProps> = ({ documentId, onDocumentCreat
         format, // Passer le format actuel
     });
 
-    // Initialiser avec le brouillon si nouveau document
+    // Initialiser avec le brouillon ou les props initiales si nouveau document
     useEffect(() => {
-        if (!documentId && savedDraft && !localContent && !localTitle) {
-            setLocalContent(savedDraft.content || '');
-            setLocalTitle(savedDraft.title || '');
+        if (!documentId && !localContent && !localTitle) {
+            if (savedDraft && (savedDraft.content || savedDraft.title)) {
+                setLocalContent(savedDraft.content || '');
+                setLocalTitle(savedDraft.title || '');
+            } else if (initialTitle || initialContent) {
+                setLocalContent(initialContent || '');
+                setLocalTitle(initialTitle || '');
+            }
         }
-    }, [documentId, savedDraft, localContent, localTitle, setLocalContent, setLocalTitle]);
+    }, [documentId, savedDraft, localContent, localTitle, setLocalContent, setLocalTitle, initialTitle, initialContent]);
 
     // Mettre à jour autoSaveEnabled quand settings est chargé
     useEffect(() => {

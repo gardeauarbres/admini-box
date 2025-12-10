@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import SimpleEditor from '@/components/SimpleEditor';
 import EditorDocumentList from '@/components/EditorDocumentList';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -8,6 +9,26 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 export default function EditorPage() {
     const [selectedDocumentId, setSelectedDocumentId] = useState<string | undefined>(undefined);
     const [showList, setShowList] = useState(true);
+
+    // Gestion des paramètres URL pour pré-remplissage via Voice Assistant
+    const searchParams = useSearchParams();
+    const [initialData, setInitialData] = useState<{ title?: string, content?: string }>({});
+
+    useEffect(() => {
+        const organism = searchParams.get('organism');
+        const action = searchParams.get('action');
+
+        if (action === 'create' || organism) {
+            setShowList(false);
+            if (organism) {
+                const formattedOrg = organism.charAt(0).toUpperCase() + organism.slice(1);
+                setInitialData({
+                    title: `Courrier pour ${formattedOrg}`,
+                    content: `Objet : Demande de renseignements\n\nMadame, Monsieur,\n\nJe me permets de vous contacter concernant mon dossier auprès de ${formattedOrg}.\n\n Cordialement,\n`
+                });
+            }
+        }
+    }, [searchParams]);
 
     const handleSelectDocument = (documentId: string) => {
         setSelectedDocumentId(documentId);
@@ -17,6 +38,7 @@ export default function EditorPage() {
     const handleNewDocument = () => {
         setSelectedDocumentId(undefined);
         setShowList(false);
+        setInitialData({});
     };
 
     const handleBackToList = () => {
@@ -55,6 +77,8 @@ export default function EditorPage() {
                 ) : (
                     <SimpleEditor
                         documentId={selectedDocumentId}
+                        initialTitle={initialData.title}
+                        initialContent={initialData.content}
                         onDocumentCreated={(documentId) => {
                             setSelectedDocumentId(documentId);
                             showList && setShowList(false);
