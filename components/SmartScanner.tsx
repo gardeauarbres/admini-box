@@ -1,7 +1,6 @@
 import React, { useState, useCallback } from 'react';
-import { createWorker } from 'tesseract.js';
 import { useDropzone } from 'react-dropzone';
-import { analyzeReceipt } from '@/lib/ai-editor';
+import SpotlightCard from './SpotlightCard';
 
 interface SmartScannerProps {
     onScanComplete: (data: { amount?: number, date?: string, merchant?: string, category?: string }) => void;
@@ -9,43 +8,58 @@ interface SmartScannerProps {
 
 export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
     const [scanning, setScanning] = useState(false);
-    const [progress, setProgress] = useState(0);
+    const [loadingMessage, setLoadingMessage] = useState<string>('');
+
+    const convertToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader();
+            reader.readAsDataURL(file);
+            reader.onload = () => resolve(reader.result as string);
+            reader.onerror = error => reject(error);
+        });
+    };
 
     const onDrop = useCallback(async (acceptedFiles: File[]) => {
         if (!acceptedFiles || acceptedFiles.length === 0) return;
 
         setScanning(true);
-        setProgress(0);
+        setLoadingMessage('Lecture de l\'image...');
         const file = acceptedFiles[0];
 
         try {
-            const worker = await createWorker('fra'); // Load French language model
+            // 1. Convertir en Base64
+            const base64Image = await convertToBase64(file);
 
-            // Log progress
-            // Note: In v5 createWorker is async, we can't easily attach logger in the same way as v2
-            // For simplicity in this demo, we'll just simulate progress or use basic awaiting
-            setProgress(30);
+            // 2. Envoyer à l'API Vision (Llama 3.2 11B)
+            setLoadingMessage('Analyse par l\'IA (Vision)...');
 
-            const { data: { text } } = await worker.recognize(file);
-            setProgress(100);
+            const response = await fetch('/api/ai/ocr', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ image: base64Image }),
+            });
 
-            console.log('OCR Result:', text);
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Erreur lors de l\'analyse');
+            }
 
-            // AI Analysis
-            const aiResult = await analyzeReceipt(text);
-            console.log('AI Result:', aiResult);
+            const data = await response.json();
+            console.log('Vision Result:', data);
 
             onScanComplete({
-                amount: aiResult.amount,
-                date: aiResult.date,
-                merchant: aiResult.merchant,
-                category: aiResult.category
+                amount: data.amount,
+                date: data.date,
+                merchant: data.merchant,
+                category: data.category
             });
 
         } catch (error) {
             console.error('OCR Failed:', error);
+            // On pourrait ajouter un toast d'erreur ici via le contexte
         } finally {
             setScanning(false);
+            setLoadingMessage('');
         }
     }, [onScanComplete]);
 
@@ -54,16 +68,16 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
         multiple: false,
         disabled: scanning,
         accept: {
-            'image/*': ['.jpeg', '.jpg', '.png'],
-            'application/pdf': ['.pdf']
+            'image/*': ['.jpeg', '.jpg', '.png', '.webp'],
+            // PDF non supporté directement par Vision pour l'instant sans conversion
         }
     });
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid var(--primary)', background: 'rgba(var(--primary-rgb), 0.05)' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '1.5rem', marginBottom: '1.5rem', border: '1px solid var(--primary)', background: 'rgba(var(--primary-rgb), 0.05)' }} spotlightColor="rgba(var(--primary-rgb), 0.15)">
             <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                🤖 Smart Scan IA
-                {scanning && <span style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>• Analyse en cours...</span>}
+                🤖 Smart Scan Vision
+                {scanning && <span className="animate-pulse" style={{ fontSize: '0.8rem', color: 'var(--primary)' }}>• {loadingMessage}</span>}
             </h3>
 
             <div {...getRootProps()} style={{
@@ -73,26 +87,25 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
                 textAlign: 'center',
                 cursor: scanning ? 'wait' : 'pointer',
                 transition: 'all 0.2s',
-                background: isDragActive ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent'
+                background: isDragActive ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
+                opacity: scanning ? 0.7 : 1
             }}>
                 <input {...getInputProps()} />
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>
-                    {scanning ? '⚙️' : '📸'}
+                    {scanning ? '👀' : '📸'}
                 </div>
                 {scanning ? (
                     <div>
-                        <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Lecture du ticket...</div>
-                        <div style={{ height: '4px', background: 'var(--card-border)', borderRadius: '2px', overflow: 'hidden', width: '200px', margin: '0 auto' }}>
-                            <div style={{ height: '100%', width: `${progress}%`, background: 'var(--primary)', transition: 'width 0.3s' }} />
-                        </div>
+                        <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Analyse en cours...</div>
+                        <div style={{ fontSize: '0.8rem', color: 'var(--secondary)' }}>Llama Vision décrypte votre ticket</div>
                     </div>
                 ) : (
                     <div>
                         <p style={{ margin: 0, fontWeight: 500 }}>Glissez un ticket ou une facture</p>
-                        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--secondary)' }}>Détection automatique du montant et de la date</p>
+                        <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--secondary)' }}>Détection automatique (Commerçant, Date, Prix)</p>
                     </div>
                 )}
             </div>
-        </div>
+        </SpotlightCard>
     );
 }

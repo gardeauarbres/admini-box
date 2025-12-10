@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { formatDate, calculateBalance, calculateIncome, calculateExpense } from './utils';
+import { formatDate, calculateBalance, calculateIncome, calculateExpense, formatCurrency, formatFileSize } from './utils';
 
 describe('utils', () => {
     describe('formatDate', () => {
@@ -36,6 +36,21 @@ describe('utils', () => {
             expect(calculateIncome([])).toBe(0);
             expect(calculateExpense([])).toBe(0);
             expect(calculateBalance([])).toBe(0);
+        });
+    });
+
+    describe('Formatting Utilities', () => {
+        it('formatCurrency should format EUR correctly', () => {
+            const result = formatCurrency(1000.50);
+            expect(result).toContain('€');
+            // Check for localized number format (space as separator in FR)
+            expect(result.replace(/\s/g, ' ')).toMatch(/1 000,50/);
+        });
+
+        it('formatFileSize should handle bytes and formatting', () => {
+            expect(formatFileSize(0)).toBe('0 Bytes');
+            expect(formatFileSize(1024)).toBe('1 KB');
+            expect(formatFileSize(1024 * 1024 * 5)).toBe('5 MB');
         });
     });
 });
