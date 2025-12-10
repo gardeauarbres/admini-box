@@ -3,12 +3,13 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { useGamification } from '@/lib/hooks/useGamification';
+import SpotlightCard from '@/components/SpotlightCard';
 
 export default function GamificationCard() {
     const { badges, xp, level, progress, nextLevelXP } = useGamification();
 
     return (
-        <div className="glass-panel" style={{ padding: '1.5rem', background: 'linear-gradient(145deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.01) 100%)' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '1.5rem' }} spotlightColor="rgba(255, 255, 255, 0.1)">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
                 <h3 className="section-title" style={{ fontSize: '1.1rem', margin: 0 }}>🏆 Mes Succès</h3>
                 <span style={{ fontSize: '0.9rem', color: 'var(--primary)', fontWeight: 600 }}>Niveau {level}</span>
@@ -51,6 +52,6 @@ export default function GamificationCard() {
                     </div>
                 ))}
             </div>
-        </div>
+        </SpotlightCard>
     );
 }

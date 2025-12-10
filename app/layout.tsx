@@ -40,7 +40,7 @@ import PersistentNotifications from "@/components/PersistentNotifications";
 import ReminderNotifications from "@/components/ReminderNotifications";
 import AutoBackup from "@/components/AutoBackup";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
-import PageTransition from "@/components/PageTransition";
+
 import OnboardingOverlay from "@/components/OnboardingOverlay";
 import VoiceManager from "@/components/VoiceManager";
 import RealtimeManager from "@/components/RealtimeManager";
@@ -76,9 +76,7 @@ export default function RootLayout({
                       <div className="layout-wrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                         <Navigation />
                         <main className="container" style={{ flex: 1 }}>
-                          <PageTransition>
-                            {children}
-                          </PageTransition>
+                          {children}
                         </main>
                         <Footer />
                       </div>

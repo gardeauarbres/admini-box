@@ -4,6 +4,7 @@ import { useMemo } from 'react';
 import { Organism, Transaction } from '@/lib/queries';
 import { formatCurrency } from '@/lib/utils';
 import { LineChart, Line, BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import SpotlightCard from './SpotlightCard';
 
 interface AnalyticsDashboardProps {
   organisms: Organism[];
@@ -173,7 +174,7 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
 
       {/* Cartes de résumé */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem' }}>
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '1.5rem' }} spotlightColor="rgba(255, 255, 255, 0.1)">
           <div style={{ fontSize: '0.85rem', color: 'var(--secondary)', marginBottom: '0.5rem' }}>
             Organismes avec rappels
           </div>
@@ -185,9 +186,9 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
               {analytics.overdueReminders} en retard
             </div>
           )}
-        </div>
+        </SpotlightCard>
 
-        <div className="glass-panel" style={{ padding: '1.5rem' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '1.5rem' }} spotlightColor="rgba(255, 255, 255, 0.1)">
           <div style={{ fontSize: '0.85rem', color: 'var(--secondary)', marginBottom: '0.5rem' }}>
             Tags populaires
           </div>
@@ -197,11 +198,11 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
           <div style={{ fontSize: '0.75rem', color: 'var(--secondary)', marginTop: '0.25rem' }}>
             {analytics.topTags[0]?.name || 'Aucun'}
           </div>
-        </div>
+        </SpotlightCard>
       </div>
 
       {/* Graphique : Organismes par statut */}
-      <div className="glass-panel" style={{ padding: '2rem' }}>
+      <SpotlightCard className="glass-panel" style={{ padding: '2rem' }} spotlightColor="rgba(16, 185, 129, 0.1)">
         <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>
           Répartition des organismes par statut
         </h3>
@@ -225,11 +226,11 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
             <Tooltip />
           </PieChart>
         </ResponsiveContainer>
-      </div>
+      </SpotlightCard>
 
       {/* Graphique : Évolution financière */}
       {analytics.monthlyData.length > 0 && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '2rem' }} spotlightColor="rgba(59, 130, 246, 0.1)">
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>
             Évolution financière (12 derniers mois)
           </h3>
@@ -280,12 +281,12 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </SpotlightCard>
       )}
 
       {/* Graphique : Dépenses par catégorie */}
       {analytics.categoryData.length > 0 && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '2rem' }} spotlightColor="rgba(236, 72, 153, 0.1)">
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>
             Dépenses par catégorie
           </h3>
@@ -305,12 +306,12 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
               <Bar dataKey="value" fill="#3b82f6" name="Montant" isAnimationActive={false} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </SpotlightCard>
       )}
 
       {/* Tags les plus utilisés */}
       {analytics.topTags.length > 0 && (
-        <div className="glass-panel" style={{ padding: '2rem' }}>
+        <SpotlightCard className="glass-panel" style={{ padding: '2rem' }} spotlightColor="rgba(255, 255, 255, 0.1)">
           <h3 style={{ fontSize: '1.1rem', marginBottom: '1.5rem', fontWeight: 600 }}>
             Tags les plus utilisés
           </h3>
@@ -358,7 +359,7 @@ export default function AnalyticsDashboard({ organisms, transactions }: Analytic
               </div>
             ))}
           </div>
-        </div>
+        </SpotlightCard>
       )}
     </div>
   );
