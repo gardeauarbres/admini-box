@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import SpotlightCard from './SpotlightCard';
+import { useToast } from '@/context/ToastContext';
 
 interface SmartScannerProps {
     onScanComplete: (data: { amount?: number, date?: string, merchant?: string, category?: string, file?: File }) => void;
@@ -9,6 +10,7 @@ interface SmartScannerProps {
 export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
     const [scanning, setScanning] = useState(false);
     const [loadingMessage, setLoadingMessage] = useState<string>('');
+    const { showToast } = useToast();
 
     const convertToBase64 = (file: File): Promise<string> => {
         return new Promise((resolve, reject) => {
@@ -57,12 +59,12 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
 
         } catch (error) {
             console.error('OCR Failed:', error);
-            // On pourrait ajouter un toast d'erreur ici via le contexte
+            showToast("Échec de l'analyse (Erreur IA/Réseau). Réessayez.", "error");
         } finally {
             setScanning(false);
             setLoadingMessage('');
         }
-    }, [onScanComplete]);
+    }, [onScanComplete, showToast]);
 
     const { getRootProps, getInputProps, isDragActive } = useDropzone({
         onDrop,
