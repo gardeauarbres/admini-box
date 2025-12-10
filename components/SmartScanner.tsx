@@ -3,7 +3,7 @@ import { useDropzone } from 'react-dropzone';
 import SpotlightCard from './SpotlightCard';
 
 interface SmartScannerProps {
-    onScanComplete: (data: { amount?: number, date?: string, merchant?: string, category?: string }) => void;
+    onScanComplete: (data: { amount?: number, date?: string, merchant?: string, category?: string, file?: File }) => void;
 }
 
 export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
@@ -51,7 +51,8 @@ export default function SmartScanner({ onScanComplete }: SmartScannerProps) {
                 amount: data.amount,
                 date: data.date,
                 merchant: data.merchant,
-                category: data.category
+                category: data.category,
+                file: file
             });
 
         } catch (error) {

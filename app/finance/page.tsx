@@ -5,9 +5,10 @@ import FinanceTable from '@/components/FinanceTable';
 import FinancialCharts from '@/components/FinancialCharts';
 import SmartScanner from '@/components/SmartScanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { calculateIncome, calculateExpense } from '@/lib/utils';
+import { calculateIncome, calculateExpense, formatFileSize } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
-import { useTransactions } from '@/lib/queries';
+import { useTransactions, useCreateDocument } from '@/lib/queries';
+import { useToast } from '@/context/ToastContext';
 import { Suspense } from 'react';
 import FinanceURLHandler from '@/components/FinanceURLHandler';
 
@@ -54,16 +55,50 @@ export default function FinancePage() {
 
 
 
-    const handleScanComplete = useCallback((data: { amount?: number, date?: string, merchant?: string }) => {
+    // Hooks for saving document
+    const [isSavingDoc, setIsSavingDoc] = useState(false);
+    const { showToast } = useToast();
+    const createDocumentMutation = useCreateDocument();
+
+    const handleScanComplete = useCallback(async (data: { amount?: number, date?: string, merchant?: string, file?: File }) => {
+        let savedFileId = undefined;
+
+        if (data.file && user) {
+            setIsSavingDoc(true);
+            try {
+                // Determine doc type based on merchant or label
+                const docType = 'Reçu/Facture';
+
+                // Upload to Documents
+                await createDocumentMutation.mutateAsync({
+                    userId: user.$id,
+                    file: data.file,
+                    metadata: {
+                        name: `Justificatif - ${data.merchant || 'Inconnu'} - ${data.date || new Date().toLocaleDateString()}`,
+                        date: data.date || new Date().toISOString(),
+                        organism: data.merchant || 'Autre',
+                        type: docType,
+                        size: formatFileSize(data.file.size)
+                    }
+                });
+                showToast("Document enregistré dans vos dossiers !", "success");
+            } catch (err) {
+                console.error("Failed to save scanned doc:", err);
+                showToast("Erreur sauvegarde document", "error");
+            } finally {
+                setIsSavingDoc(false);
+            }
+        }
+
         setTransactionInitialData({
             amount: data.amount,
             date: data.date,
             label: data.merchant,
-            type: 'expense', // Default assumption for scans
+            type: 'expense',
             category: 'Autre'
         });
         setShowTransactionForm(true);
-    }, []);
+    }, [user, createDocumentMutation, showToast]);
 
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
