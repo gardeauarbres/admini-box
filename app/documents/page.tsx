@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import FileManager from '@/components/FileManager';
+import MagneticButton from '@/components/MagneticButton';
 import ProtectedRoute from '@/components/ProtectedRoute';
 
 export default function DocumentsPage() {
@@ -26,46 +27,50 @@ export default function DocumentsPage() {
                         display: 'flex',
                         gap: '0.25rem'
                     }}>
-                        <button
-                            onClick={() => setViewMode('grid')}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: 'calc(var(--radius) - 4px)',
-                                border: 'none',
-                                background: viewMode === 'grid' ? 'var(--primary)' : 'transparent',
-                                color: viewMode === 'grid' ? 'white' : 'var(--secondary)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '40px',
-                                height: '40px'
-                            }}
-                            title="Vue Grille"
-                        >
-                            <span style={{ fontSize: '1.2rem' }}>🔲</span>
-                        </button>
-                        <button
-                            onClick={() => setViewMode('list')}
-                            style={{
-                                padding: '0.5rem',
-                                borderRadius: 'calc(var(--radius) - 4px)',
-                                border: 'none',
-                                background: viewMode === 'list' ? 'var(--primary)' : 'transparent',
-                                color: viewMode === 'list' ? 'white' : 'var(--secondary)',
-                                cursor: 'pointer',
-                                transition: 'all 0.2s ease',
-                                display: 'flex',
-                                alignItems: 'center',
-                                justifyContent: 'center',
-                                width: '40px',
-                                height: '40px'
-                            }}
-                            title="Vue Liste"
-                        >
-                            <span style={{ fontSize: '1.2rem' }}>≣</span>
-                        </button>
+                        <MagneticButton strength={20}>
+                            <button
+                                onClick={() => setViewMode('grid')}
+                                style={{
+                                    padding: '0.5rem',
+                                    borderRadius: 'calc(var(--radius) - 4px)',
+                                    border: 'none',
+                                    background: viewMode === 'grid' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'grid' ? 'white' : 'var(--secondary)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '40px',
+                                    height: '40px'
+                                }}
+                                title="Vue Grille"
+                            >
+                                <span style={{ fontSize: '1.2rem' }}>🔲</span>
+                            </button>
+                        </MagneticButton>
+                        <MagneticButton strength={20}>
+                            <button
+                                onClick={() => setViewMode('list')}
+                                style={{
+                                    padding: '0.5rem',
+                                    borderRadius: 'calc(var(--radius) - 4px)',
+                                    border: 'none',
+                                    background: viewMode === 'list' ? 'var(--primary)' : 'transparent',
+                                    color: viewMode === 'list' ? 'white' : 'var(--secondary)',
+                                    cursor: 'pointer',
+                                    transition: 'all 0.2s ease',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    width: '40px',
+                                    height: '40px'
+                                }}
+                                title="Vue Liste"
+                            >
+                                <span style={{ fontSize: '1.2rem' }}>≣</span>
+                            </button>
+                        </MagneticButton>
                     </div>
                 </header>
 

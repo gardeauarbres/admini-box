@@ -5,6 +5,7 @@ import { useOrganisms, useTransactions } from '@/lib/queries';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import AnalyticsDashboard from '@/components/AnalyticsDashboard';
+import SpotlightCard from '@/components/SpotlightCard';
 
 export default function AnalyticsPage() {
   const { user } = useAuth();
@@ -32,11 +33,11 @@ export default function AnalyticsPage() {
         {organisms.length > 0 || transactions.length > 0 ? (
           <AnalyticsDashboard organisms={organisms} transactions={transactions} />
         ) : (
-          <div className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }}>
+          <SpotlightCard className="glass-panel" style={{ padding: '2rem', textAlign: 'center' }} spotlightColor="rgba(255, 255, 255, 0.1)">
             <p style={{ color: 'var(--secondary)' }}>
               Aucune donnée disponible pour les analytics. Ajoutez des organismes et des transactions pour voir les statistiques.
             </p>
-          </div>
+          </SpotlightCard>
         )}
       </div>
     </ProtectedRoute>

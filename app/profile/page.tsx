@@ -15,6 +15,7 @@ import ActivityStats from '@/components/ActivityStats';
 import DataExport from '@/components/DataExport';
 import UserPreferences from '@/components/UserPreferences';
 import EmailNotifications from '@/components/EmailNotifications';
+import MagneticButton from '@/components/MagneticButton';
 
 type TabType = 'overview' | 'personal' | 'professional' | 'security' | 'activity' | 'export' | 'preferences' | 'notifications';
 
@@ -94,43 +95,44 @@ export default function ProfilePage() {
             msOverflowStyle: 'none'
           }}>
             {tabs.map(tab => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                style={{
-                  padding: '0.75rem 1rem',
-                  background: 'transparent',
-                  border: 'none',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  color: activeTab === tab.id ? 'var(--primary)' : 'var(--secondary)',
-                  fontWeight: activeTab === tab.id ? 600 : 500,
-                  fontSize: '0.95rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  transition: 'color 0.2s',
-                  whiteSpace: 'nowrap'
-                }}
-              >
-                <span>{tab.icon}</span>
-                {tab.label.replace(tab.icon + ' ', '')} {/* Hack pour éviter de dupliquer l'icône si déjà dans le label */}
+              <MagneticButton key={tab.id} strength={10}>
+                <button
+                  onClick={() => setActiveTab(tab.id)}
+                  style={{
+                    padding: '0.75rem 1rem',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    color: activeTab === tab.id ? 'var(--primary)' : 'var(--secondary)',
+                    fontWeight: activeTab === tab.id ? 600 : 500,
+                    fontSize: '0.95rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem',
+                    transition: 'color 0.2s',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  <span>{tab.icon}</span>
+                  {tab.label.replace(tab.icon + ' ', '')} {/* Hack pour éviter de dupliquer l'icône si déjà dans le label */}
 
-                {activeTab === tab.id && (
-                  <motion.div
-                    layoutId="activeTabUnderline"
-                    style={{
-                      position: 'absolute',
-                      bottom: '-0.5rem',
-                      left: 0,
-                      right: 0,
-                      height: '2px',
-                      backgroundColor: 'var(--primary)',
-                      borderRadius: '2px'
-                    }}
-                  />
-                )}
-              </button>
+                  {activeTab === tab.id && (
+                    <motion.div
+                      layoutId="activeTabUnderline"
+                      style={{
+                        position: 'absolute',
+                        bottom: '-0.5rem',
+                        left: 0,
+                        right: 0,
+                        height: '2px',
+                        backgroundColor: 'var(--primary)',
+                        borderRadius: '2px'
+                      }}
+                    />
+                  )}
+                </button>
+              </MagneticButton>
             ))}
           </div>
         </div>
