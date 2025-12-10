@@ -31,44 +31,43 @@ export async function POST(req: Request) {
         // Avec @ai-sdk/groq, on peut passer un message user avec content array.
 
         const { text } = await generateText({
-            const { text } = await generateText({
-                // Groq Llama 3.2 90B (11B decommissioned)
-                model: groq('llama-3.2-90b-vision-preview'),
-                system: SYSTEM_PROMPT,
-                messages: [
-                    {
-                        role: 'user',
-                        content: [
-                            { type: 'text', text: 'Analyse ce ticket de caisse.' },
-                            { type: 'image', image: image }, // L'image doit être une data URL ou une URL
-                        ],
-                    },
-                ],
-            });
+            // Groq Llama 3.2 90B (11B decommissioned)
+            model: groq('llama-3.2-90b-vision-preview'),
+            system: SYSTEM_PROMPT,
+            messages: [
+                {
+                    role: 'user',
+                    content: [
+                        { type: 'text', text: 'Analyse ce ticket de caisse.' },
+                        { type: 'image', image: image }, // L'image doit être une data URL ou une URL
+                    ],
+                },
+            ],
+        });
 
-            // Nettoyage agressif du résultat pour garantir un JSON valide
-            let cleanedText = text.trim();
-            if(cleanedText.startsWith('```json')) {
-                cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
-    } else if (cleanedText.startsWith('```')) {
-        cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        // Nettoyage agressif du résultat pour garantir un JSON valide
+        let cleanedText = text.trim();
+        if (cleanedText.startsWith('```json')) {
+            cleanedText = cleanedText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+        } else if (cleanedText.startsWith('```')) {
+            cleanedText = cleanedText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+        }
+
+        let result;
+        try {
+            result = JSON.parse(cleanedText);
+        } catch (e) {
+            console.error('Erreur parsing JSON Vision:', cleanedText);
+            throw new Error('Réponse IA invalide (pas de JSON)');
+        }
+
+        return NextResponse.json(result);
+
+    } catch (error: any) {
+        console.error('Erreur OCR Vision:', error);
+        return NextResponse.json(
+            { error: error.message || 'Erreur lors de l\'analyse du document' },
+            { status: 500 }
+        );
     }
-
-    let result;
-    try {
-        result = JSON.parse(cleanedText);
-    } catch (e) {
-        console.error('Erreur parsing JSON Vision:', cleanedText);
-        throw new Error('Réponse IA invalide (pas de JSON)');
-    }
-
-    return NextResponse.json(result);
-
-} catch (error: any) {
-    console.error('Erreur OCR Vision:', error);
-    return NextResponse.json(
-        { error: error.message || 'Erreur lors de l\'analyse du document' },
-        { status: 500 }
-    );
-}
 }
