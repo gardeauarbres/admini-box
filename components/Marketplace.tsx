@@ -64,7 +64,38 @@ export default function Marketplace({ onInstall, onClose }: MarketplaceProps) {
     });
 
     return (
-        <div className="glass-panel" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '80vh', maxWidth: '1000px', margin: '0 auto', border: '1px solid var(--primary)' }}>
+        <div className="glass-panel marketplace-container" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '80vh', maxWidth: '1000px', margin: '0 auto', border: '1px solid var(--primary)' }}>
+            <style jsx global>{`
+        @media (max-width: 768px) {
+          .marketplace-body {
+            flex-direction: column !important;
+          }
+          .marketplace-sidebar {
+            width: 100% !important;
+            border-right: none !important;
+            border-bottom: 1px solid var(--card-border) !important;
+            padding: 1rem !important;
+          }
+          .marketplace-sidebar-content {
+            flex-direction: row !important;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+          }
+          .marketplace-sidebar-btn {
+            white-space: nowrap;
+            padding: 0.5rem 0.75rem !important;
+            font-size: 0.85rem !important;
+            flex-shrink: 0;
+          }
+          .marketplace-container {
+             height: 100vh !important;
+             border-radius: 0 !important;
+             max-width: none !important;
+             border: none !important;
+          }
+        }
+      `}</style>
+
             {/* Header */}
             <div style={{ padding: '1.5rem', background: 'linear-gradient(to right, rgba(var(--primary-rgb), 0.1), transparent)', borderBottom: '1px solid var(--card-border)' }}>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
@@ -98,15 +129,16 @@ export default function Marketplace({ onInstall, onClose }: MarketplaceProps) {
                 </div>
             </div>
 
-            <div style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
+            <div className="marketplace-body" style={{ display: 'flex', flex: 1, overflow: 'hidden' }}>
                 {/* Sidebar Categories */}
-                <div style={{ width: '200px', padding: '1.5rem 1rem', borderRight: '1px solid var(--card-border)', overflowY: 'auto' }}>
+                <div className="marketplace-sidebar" style={{ width: '200px', padding: '1.5rem 1rem', borderRight: '1px solid var(--card-border)', overflowY: 'auto' }}>
                     <h3 style={{ fontSize: '0.9rem', color: 'var(--secondary)', textTransform: 'uppercase', letterSpacing: '1px', marginBottom: '1rem' }}>Catégories</h3>
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                    <div className="marketplace-sidebar-content" style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
                         {CATEGORIES.map(cat => (
                             <button
                                 key={cat.id}
                                 onClick={() => setActiveCategory(cat.id)}
+                                className="marketplace-sidebar-btn"
                                 style={{
                                     display: 'flex',
                                     alignItems: 'center',

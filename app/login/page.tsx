@@ -53,8 +53,10 @@ export default function LoginPage() {
                 transition={{ duration: 0.5 }}
                 className="glass-panel"
                 style={{
-                    display: 'grid',
-                    gridTemplateColumns: 'repeat(auto-fit, minmax(350px, 1fr))',
+                    display: 'flex',
+                    flexWrap: 'wrap-reverse', // Mobile: Form (top) -> Pres (bottom) due to reverse? No, wrap-reverse wraps upward.
+                    // Let's use standard wrap and order.
+                    flexDirection: 'row',
                     maxWidth: '1000px',
                     width: '100%',
                     overflow: 'hidden',
@@ -63,8 +65,20 @@ export default function LoginPage() {
                     boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)'
                 }}
             >
-                {/* Section Gauche : Présentation */}
-                <div style={{
+                <style jsx global>{`
+                    @media (max-width: 768px) {
+                        .login-presentation {
+                            display: none !important;
+                        }
+                        .login-container {
+                            padding: 1rem !important;
+                        }
+                    }
+                `}</style>
+
+                {/* Section Gauche : Présentation (Hidden on mobile) */}
+                <div className="login-presentation" style={{
+                    flex: '1 1 350px',
                     padding: '3rem',
                     background: 'linear-gradient(135deg, rgba(var(--primary-rgb), 0.1) 0%, rgba(var(--secondary-rgb), 0.05) 100%)',
                     display: 'flex',
@@ -127,7 +141,7 @@ export default function LoginPage() {
                 </div>
 
                 {/* Section Droite : Formulaire */}
-                <div style={{ padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                <div className="login-container" style={{ flex: '1 1 350px', padding: '3rem', display: 'flex', flexDirection: 'column', justifyContent: 'center', minWidth: '300px' }}>
                     <div style={{ marginBottom: '2rem', textAlign: 'center' }}>
                         <h1 style={{ fontSize: '1.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>Connexion</h1>
                         <p style={{ color: 'var(--secondary)' }}>Accédez à votre espace sécurisé</p>
