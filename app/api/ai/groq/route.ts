@@ -25,7 +25,7 @@ Format d’entrée
 Je t’enverrai toujours un JSON de ce type (tous les champs ne sont pas obligatoires) :
 
 {
-  "mode": "ameliorer | corriger | formaliser | simplifier | resumer | extraire_meta | generer_modele | idees",
+  "mode": "ameliorer | corriger | formaliser | simplifier | resumer | extraire_meta | generer_modele | idees | analyser_recu",
   "lang": "fr",
   "titre": "Titre du document ou du courrier",
   "contenu": "Texte actuel de l’utilisateur (peut être vide si on génère de zéro)",
@@ -51,9 +51,10 @@ extraire_meta: Extraire les informations structurées (JSON metadonnées).
 generer_modele: Générer un courrier ou modèle à partir du contexte.
 generer: Rédiger un contenu complet à partir d'une instruction libre.
 idees: Proposer plusieurs pistes.
+analyser_recu: Analyser le texte brut d'un ticket de caisse ou facture et extraire : merchant (commerçant), date (YYYY-MM-DD), amount (nombre), category (Alimentation, Transport, Logement, Loisirs, Santé, Shopping, Autre).
 
 Format de sortie attendu
-Par défaut (sauf indication contraire pour extraire_meta), ta réponse doit suivre cette structure JSON :
+Par défaut (sauf indication contraire pour extraire_meta ou analyser_recu), ta réponse doit suivre cette structure JSON :
 
 {
   "texte_principal": "Texte principal final ou version recommandée",
@@ -67,6 +68,14 @@ Par défaut (sauf indication contraire pour extraire_meta), ta réponse doit sui
     "actions_recommandees": []
   },
   "commentaires": [ "Explications..." ]
+}
+
+Pour le mode 'analyser_recu', le format de sortie attendu est :
+{
+    "merchant": "Nom du commerçant",
+    "date": "YYYY-MM-DD",
+    "amount": 12.50,
+    "category": "Alimentation"
 }
 
 Règles importantes
@@ -112,11 +121,19 @@ export async function POST(req: Request) {
 
         } else {
             // Mode JSON (Ancien fonctionnement pour metadata, etc.)
+            let systemSuffix = "\nIMPORTANT: Retourne UNIQUEMENT le JSON brut.";
+
+            if (body.mode === 'analyser_recu') {
+                systemSuffix += " Extrais les données du ticket fourni dans 'contenu'. Si une info est introuvable, mets null. Pour le montant, convertis en nombre.";
+            } else {
+                systemSuffix += " sans balises markdown (```json ... ```) et sans texte avant ou après.";
+            }
+
             const { text } = await generateText({
                 model: groq('llama-3.3-70b-versatile'),
-                system: SYSTEM_PROMPT + "\nIMPORTANT: Retourne UNIQUEMENT le JSON brut, sans balises markdown (```json ... ```) et sans texte avant ou après.",
+                system: SYSTEM_PROMPT + systemSuffix,
                 prompt: JSON.stringify(body),
-                temperature: 0.3,
+                temperature: 0.1, // Lower temperature for extraction
             });
 
             // Nettoyage du markdown éventuel

@@ -12,6 +12,7 @@ import DashboardWidgets from '@/components/DashboardWidgets';
 import FilterPresets from '@/components/FilterPresets';
 import NotificationBell from '@/components/NotificationBell';
 import ThemeToggle from '@/components/ThemeToggle';
+import GamificationCard from '@/components/GamificationCard';
 import { exportOrganismsToCSV } from '@/lib/export';
 import { useAuth } from '@/context/AuthContext';
 import { useTransactions } from '@/lib/queries';
@@ -351,6 +352,9 @@ export default function Home() {
             <>Tout est à jour.</>
           )}
         </p>
+        <div style={{ marginTop: '2rem' }}>
+          <GamificationCard />
+        </div>
       </header>
 
       {/* Widgets personnalisables */}

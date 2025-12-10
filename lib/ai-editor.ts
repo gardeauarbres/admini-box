@@ -166,4 +166,20 @@ export async function* generateContentStream(payload: any): AsyncGenerator<strin
   }
 }
 
+/**
+ * Analyser un reçu (OCR + IA)
+ */
+export async function analyzeReceipt(ocrText: string): Promise<{ merchant?: string; date?: string; amount?: number; category?: string }> {
+  return withCache('analyze_receipt', ocrText, undefined, async () => {
+    const result = await callAI({
+      mode: 'analyser_recu',
+      contenu: ocrText,
+      lang: 'fr'
+    });
+
+    // Le mode analyser_recu retourne directement l'objet structuré
+    return result as any;
+  });
+}
+
 

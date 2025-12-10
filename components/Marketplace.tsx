@@ -66,34 +66,39 @@ export default function Marketplace({ onInstall, onClose }: MarketplaceProps) {
     return (
         <div className="glass-panel marketplace-container" style={{ padding: '0', overflow: 'hidden', display: 'flex', flexDirection: 'column', height: '80vh', maxWidth: '1000px', margin: '0 auto', border: '1px solid var(--primary)' }}>
             <style jsx global>{`
-        @media (max-width: 768px) {
-          .marketplace-body {
-            flex-direction: column !important;
-          }
-          .marketplace-sidebar {
-            width: 100% !important;
-            border-right: none !important;
-            border-bottom: 1px solid var(--card-border) !important;
-            padding: 1rem !important;
-          }
-          .marketplace-sidebar-content {
-            flex-direction: row !important;
-            overflow-x: auto;
-            padding-bottom: 0.5rem;
-          }
-          .marketplace-sidebar-btn {
-            white-space: nowrap;
-            padding: 0.5rem 0.75rem !important;
-            font-size: 0.85rem !important;
-            flex-shrink: 0;
-          }
-          .marketplace-container {
-             height: 100vh !important;
-             border-radius: 0 !important;
-             max-width: none !important;
-             border: none !important;
-          }
-        }
+            @media (max-width: 768px) {
+              .marketplace-body {
+                flex-direction: column !important;
+              }
+              .marketplace-sidebar {
+                width: 100% !important;
+                border-right: none !important;
+                border-bottom: 1px solid var(--card-border) !important;
+                padding: 1rem !important;
+              }
+              .marketplace-sidebar-content {
+                flex-direction: row !important;
+                overflow-x: auto;
+                padding-bottom: 0.5rem;
+                gap: 0.5rem !important;
+                -webkit-overflow-scrolling: touch;
+              }
+              .marketplace-sidebar-btn {
+                white-space: nowrap;
+                padding: 0.5rem 1rem !important;
+                font-size: 0.9rem !important;
+                flex-shrink: 0;
+                background: var(--card-bg);
+                border: 1px solid var(--card-border) !important;
+              }
+              .marketplace-container {
+                 height: 100dvh !important; /* Use dvh for better mobile browser support */
+                 border-radius: 0 !important;
+                 max-width: none !important;
+                 border: none !important;
+                 margin: 0 !important;
+              }
+            }
       `}</style>
 
             {/* Header */}

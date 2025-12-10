@@ -42,6 +42,8 @@ import AutoBackup from "@/components/AutoBackup";
 import KeyboardShortcutsHelp from "@/components/KeyboardShortcutsHelp";
 import PageTransition from "@/components/PageTransition";
 import OnboardingOverlay from "@/components/OnboardingOverlay";
+import VoiceManager from "@/components/VoiceManager";
+import RealtimeManager from "@/components/RealtimeManager";
 
 export default function RootLayout({
   children,
@@ -65,6 +67,8 @@ export default function RootLayout({
                       <ReminderNotifications />
                       <AutoBackup />
                       <OnboardingOverlay />
+                      <RealtimeManager />
+                      <VoiceManager />
                       <div className="layout-wrapper">
                         <Navigation />
                         <main className="container">

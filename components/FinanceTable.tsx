@@ -11,20 +11,34 @@ import {
 import TransactionForm from './TransactionForm';
 import Pagination from './Pagination';
 import LoadingSpinner from './LoadingSpinner';
+import SmartScanner from './SmartScanner';
 import { calculateBalance, calculateIncome, calculateExpense } from '@/lib/utils';
 import { exportTransactionsToCSV } from '@/lib/export';
 import type { TransactionFormData } from '@/lib/validations';
 
-const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense: number }) => void }> = ({ onStatsUpdate }) => {
+interface FinanceTableProps {
+    onStatsUpdate?: (stats: { income: number; expense: number }) => void;
+    showForm?: boolean;
+    onCloseForm?: () => void;
+    initialData?: Partial<TransactionFormData>;
+}
+
+const FinanceTable: React.FC<FinanceTableProps> = ({ onStatsUpdate, showForm: externalShowForm, onCloseForm, initialData }) => {
     const { user } = useAuth();
     const { showToast } = useToast();
 
-    // Form state
-    const [showForm, setShowForm] = useState(false);
+    // Form state managed internally if not provided externally
+    const [internalShowForm, setInternalShowForm] = useState(false);
+    const showForm = externalShowForm !== undefined ? externalShowForm : internalShowForm;
+    const setShowForm = (show: boolean) => {
+        if (onCloseForm && !show) onCloseForm();
+        setInternalShowForm(show);
+    };
     const [searchQuery, setSearchQuery] = useState('');
     const [categoryFilter, setCategoryFilter] = useState<string>('Tous');
     const [typeFilter, setTypeFilter] = useState<'all' | 'income' | 'expense'>('all');
     const [currentPage, setCurrentPage] = useState(1);
+    const [scannedData, setScannedData] = useState<Partial<TransactionFormData> | undefined>(undefined);
     const itemsPerPage = 10;
 
     // React Query hooks
@@ -80,7 +94,22 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
         setCurrentPage(1);
     }, [searchQuery, categoryFilter, typeFilter]);
 
+    const [showScanner, setShowScanner] = useState(false);
+
     const categories = ['Tous', ...Array.from(new Set(transactions.map(t => t.category)))];
+
+    const handleScanComplete = (data: { amount?: number, date?: string, merchant?: string, category?: string }) => {
+        setScannedData({
+            amount: data.amount,
+            date: data.date,
+            label: data.merchant ? `Achat ${data.merchant}` : undefined,
+            category: data.category || 'Autre',
+            type: 'expense' // Default to expense for receipts
+        });
+        setShowScanner(false);
+        setShowForm(true);
+        showToast('Données du reçu extraites !', 'success');
+    };
 
     const handleAddTransaction = async (data: TransactionFormData) => {
         if (!user) return;
@@ -92,6 +121,7 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
             });
 
             setShowForm(false);
+            setScannedData(undefined); // Reset scanned data
             showToast('Transaction ajoutée avec succès', 'success');
         } catch (error) {
             console.error('Error adding transaction:', error);
@@ -187,18 +217,35 @@ const FinanceTable: React.FC<{ onStatsUpdate?: (stats: { income: number; expense
                 </div>
             )}
 
+            {showScanner && (
+                <div style={{ marginBottom: '2rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+                        <h4 style={{ margin: 0 }}>Scanner un reçu</h4>
+                        <button onClick={() => setShowScanner(false)} className="btn btn-secondary" style={{ padding: '0.25rem 0.75rem' }}>Annuler</button>
+                    </div>
+                    <SmartScanner onScanComplete={handleScanComplete} />
+                </div>
+            )}
+
             {showForm && (
                 <TransactionForm
                     onSubmit={handleAddTransaction}
-                    onCancel={() => setShowForm(false)}
+                    onCancel={() => {
+                        setShowForm(false);
+                        setScannedData(undefined);
+                    }}
                     isSubmitting={createMutation.isPending}
+                    initialData={scannedData || initialData}
                 />
             )}
 
-            {!showForm && (
+            {!showForm && !showScanner && (
                 <div style={{ display: 'flex', gap: '1rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
-                    <button onClick={() => setShowForm(true)} className="btn btn-secondary">
-                        + Nouvelle Transaction
+                    <button onClick={() => setShowForm(true)} className="btn btn-primary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>+</span> Nouvelle Transaction
+                    </button>
+                    <button onClick={() => setShowScanner(true)} className="btn btn-secondary" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                        <span>📸</span> Scanner Reçu (IA)
                     </button>
                     {transactions.length > 0 && (
                         <button

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
 import { storage } from '@/lib/appwrite';
 import { useAuth } from '@/context/AuthContext';
 import { useToast } from '@/context/ToastContext';
@@ -28,11 +29,13 @@ const FileManager: React.FC<FileManagerProps> = ({ viewMode }) => {
     const createMutation = useCreateDocument();
     const deleteMutation = useDeleteDocument();
 
-    const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        if (!e.target.files || !e.target.files[0] || !user) return;
+    const onDrop = useCallback(async (acceptedFiles: File[]) => {
+        if (!acceptedFiles || acceptedFiles.length === 0 || !user) return;
 
-        const file = e.target.files[0];
         setUploading(true);
+        // Handle all dropped files (currently only handling the first one for simplicity, 
+        // but structured to allow multiple)
+        const file = acceptedFiles[0];
 
         try {
             await createMutation.mutateAsync({
@@ -41,7 +44,7 @@ const FileManager: React.FC<FileManagerProps> = ({ viewMode }) => {
                 metadata: {
                     name: file.name,
                     date: new Date().toISOString().split('T')[0],
-                    organism: 'Autre', // Default, should be selectable
+                    organism: filter !== 'Tous' ? filter : 'Autre', // Use current filter as organism if selected
                     type: 'Document',
                     size: (file.size / 1024).toFixed(2) + ' KB',
                 }
@@ -53,10 +56,14 @@ const FileManager: React.FC<FileManagerProps> = ({ viewMode }) => {
             showToast('Échec de l\'upload', 'error');
         } finally {
             setUploading(false);
-            // Reset input
-            e.target.value = '';
         }
-    };
+    }, [user, createMutation, filter, showToast]);
+
+    const { getRootProps, getInputProps, isDragActive } = useDropzone({
+        onDrop,
+        multiple: false, // Set to true to enable batch upload
+        disabled: uploading || createMutation.isPending
+    });
 
     const handleDownload = async (fileId: string) => {
         try {
@@ -132,51 +139,64 @@ const FileManager: React.FC<FileManagerProps> = ({ viewMode }) => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                    <div style={{ position: 'relative' }}>
-                        <input
-                            type="file"
-                            onChange={handleUpload}
-                            style={{ position: 'absolute', opacity: 0, width: '100%', height: '100%', cursor: 'pointer' }}
-                            disabled={uploading || createMutation.isPending}
-                        />
-                        <button className="btn btn-primary" disabled={uploading || createMutation.isPending}>
-                            <span style={{ marginRight: '0.5rem' }}>{uploading || createMutation.isPending ? '...' : '+'}</span>
-                            {uploading || createMutation.isPending ? 'Envoi...' : 'Ajouter un document'}
-                        </button>
+                    <div style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                        <div {...getRootProps()} className={`dropzone ${isDragActive ? 'active' : ''}`} style={{
+                            border: isDragActive ? '2px dashed var(--primary)' : '2px dashed var(--card-border)',
+                            borderRadius: '12px',
+                            padding: '0.75rem 1.5rem',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease',
+                            background: isDragActive ? 'rgba(var(--primary-rgb), 0.1)' : 'transparent',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '0.75rem',
+                            minWidth: '250px'
+                        }}>
+                            <input {...getInputProps()} />
+                            <span style={{ fontSize: '1.5rem' }}>{uploading ? '⏳' : '📤'}</span>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                                <span style={{ fontSize: '0.9rem', fontWeight: 500 }}>
+                                    {uploading ? 'Upload en cours...' : isDragActive ? 'Déposez le fichier ici' : 'Ajouter un document'}
+                                </span>
+                                <span style={{ fontSize: '0.75rem', color: 'var(--secondary)' }}>
+                                    {uploading ? 'Veuillez patienter' : 'Glisser-déposer ou cliquer'}
+                                </span>
+                            </div>
+                        </div>
+                        {files.length > 0 && (
+                            <button
+                                onClick={handleExport}
+                                className="btn btn-secondary"
+                                style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
+                                title="Exporter les documents en CSV"
+                            >
+                                📥 Exporter CSV
+                            </button>
+                        )}
                     </div>
-                    {files.length > 0 && (
-                        <button
-                            onClick={handleExport}
-                            className="btn btn-secondary"
-                            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}
-                            title="Exporter les documents en CSV"
-                        >
-                            📥 Exporter CSV
-                        </button>
-                    )}
                 </div>
-            </div>
 
-            {/* Barre de recherche */}
-            {files.length > 0 && (
-                <div style={{ marginBottom: '1.5rem' }}>
-                    <input
-                        type="text"
-                        placeholder="🔍 Rechercher un document..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        style={{
-                            width: '100%',
-                            padding: '0.75rem',
-                            borderRadius: 'var(--radius)',
-                            background: 'var(--form-bg)',
-                            border: '1px solid var(--card-border)',
-                            color: 'var(--foreground)',
-                            fontSize: '0.9rem'
-                        }}
-                    />
-                </div>
-            )}
+                {/* Barre de recherche */}
+                {files.length > 0 && (
+                    <div style={{ marginBottom: '1.5rem' }}>
+                        <input
+                            type="text"
+                            placeholder="🔍 Rechercher un document..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            style={{
+                                width: '100%',
+                                padding: '0.75rem',
+                                borderRadius: 'var(--radius)',
+                                background: 'var(--form-bg)',
+                                border: '1px solid var(--card-border)',
+                                color: 'var(--foreground)',
+                                fontSize: '0.9rem'
+                            }}
+                        />
+                    </div>
+                )}
+            </div>
 
             {viewMode === 'list' ? (
                 <div style={{ overflowX: 'auto' }}>

@@ -10,12 +10,14 @@ interface TransactionFormProps {
   onSubmit: (data: TransactionFormData) => Promise<void>;
   onCancel: () => void;
   isSubmitting?: boolean;
+  initialData?: Partial<TransactionFormData>;
 }
 
 export default function TransactionForm({
   onSubmit,
   onCancel,
-  isSubmitting = false
+  isSubmitting = false,
+  initialData
 }: TransactionFormProps) {
   const {
     register,
@@ -25,7 +27,7 @@ export default function TransactionForm({
     watch
   } = useForm<TransactionFormData>({
     resolver: zodResolver(transactionSchema),
-    defaultValues: getFormDraft<TransactionFormData>('transaction') || {
+    defaultValues: initialData || getFormDraft<TransactionFormData>('transaction') || {
       label: '',
       amount: 0,
       category: 'Autre',
@@ -33,6 +35,13 @@ export default function TransactionForm({
       date: new Date().toISOString().split('T')[0],
     }
   });
+
+  // Effect to update form if initialData changes
+  useEffect(() => {
+    if (initialData) {
+      reset(initialData as TransactionFormData);
+    }
+  }, [initialData, reset]);
 
   const formData = watch();
 

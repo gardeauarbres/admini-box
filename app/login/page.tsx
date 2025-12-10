@@ -71,7 +71,9 @@ export default function LoginPage() {
                             display: none !important;
                         }
                         .login-container {
-                            padding: 1rem !important;
+                            padding: 1.5rem !important;
+                            min-width: 0 !important;
+                            width: 100% !important;
                         }
                     }
                 `}</style>

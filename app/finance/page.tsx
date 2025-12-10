@@ -3,6 +3,7 @@
 import React, { useState, useCallback } from 'react';
 import FinanceTable from '@/components/FinanceTable';
 import FinancialCharts from '@/components/FinancialCharts';
+import SmartScanner from '@/components/SmartScanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import { useTransactions } from '@/lib/queries';
 import { useAuth } from '@/context/AuthContext';
@@ -33,6 +34,21 @@ export default function FinancePage() {
 
     const [analysisResult, setAnalysisResult] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+    // State for Smart Scanner interaction
+    const [showTransactionForm, setShowTransactionForm] = useState(false);
+    const [transactionInitialData, setTransactionInitialData] = useState<any>(null);
+
+    const handleScanComplete = useCallback((data: { amount?: number, date?: string, merchant?: string }) => {
+        setTransactionInitialData({
+            amount: data.amount,
+            date: data.date,
+            label: data.merchant,
+            type: 'expense', // Default assumption for scans
+            category: 'Autre'
+        });
+        setShowTransactionForm(true);
+    }, []);
 
     const handleAnalyze = async () => {
         setIsAnalyzing(true);
@@ -148,6 +164,9 @@ export default function FinancePage() {
                     </button>
                 </div>
 
+                {/* Smart Scanner Section */}
+                <SmartScanner onScanComplete={handleScanComplete} />
+
                 {analysisResult && (
                     <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent)' }}>
                         <h3 style={{ marginTop: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -162,7 +181,12 @@ export default function FinancePage() {
 
 
                 {/* Table des transactions */}
-                <FinanceTable onStatsUpdate={handleStatsUpdate} />
+                <FinanceTable
+                    onStatsUpdate={handleStatsUpdate}
+                    showForm={showTransactionForm}
+                    onCloseForm={() => setShowTransactionForm(false)}
+                    initialData={transactionInitialData}
+                />
             </div>
         </ProtectedRoute>
     );
