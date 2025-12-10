@@ -46,6 +46,8 @@ import VoiceManager from "@/components/VoiceManager";
 import RealtimeManager from "@/components/RealtimeManager";
 import GamifiedCookies from "@/components/GamifiedCookies";
 
+import Footer from "@/components/Footer";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -69,16 +71,16 @@ export default function RootLayout({
                       <AutoBackup />
                       <OnboardingOverlay />
                       <RealtimeManager />
-                      <RealtimeManager />
                       <VoiceManager />
                       <GamifiedCookies />
-                      <div className="layout-wrapper">
+                      <div className="layout-wrapper" style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
                         <Navigation />
-                        <main className="container">
+                        <main className="container" style={{ flex: 1 }}>
                           <PageTransition>
                             {children}
                           </PageTransition>
                         </main>
+                        <Footer />
                       </div>
                     </ToastProvider>
                   </AuthProvider>

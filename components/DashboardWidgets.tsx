@@ -22,6 +22,7 @@ import { CSS } from '@dnd-kit/utilities';
 import DashboardStats from './DashboardStats';
 import AdvancedStats from './AdvancedStats';
 import AnalyticsDashboard from './AnalyticsDashboard';
+import SpotlightCard from './SpotlightCard';
 import type { Organism, Transaction } from '@/lib/queries';
 
 // Composant pour rendre un widget draggable
@@ -227,6 +228,8 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
       )}
 
       {/* Affichage des widgets (Draggable) */}
+
+
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -258,7 +261,14 @@ export default function DashboardWidgets({ organisms, transactions }: DashboardW
               return (
                 <SortableWidget key={widget.id} id={widget.id} isEditing={isEditing}>
                   <div style={{ pointerEvents: isEditing ? 'none' : 'auto', opacity: isEditing ? 0.8 : 1, transition: 'opacity 0.2s' }}>
-                    {content}
+                    {/* Wrap content in SpotlightCard for premium feel */}
+                    <SpotlightCard
+                      className=""
+                      style={{ padding: '0', overflow: 'visible', background: 'transparent', boxShadow: 'none', border: 'none' }}
+                      spotlightColor="rgba(255, 255, 255, 0.05)"
+                    >
+                      {content}
+                    </SpotlightCard>
                   </div>
                 </SortableWidget>
               );

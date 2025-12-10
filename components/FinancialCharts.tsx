@@ -105,23 +105,103 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
     );
   }
 
+  // Neon Colors Palette
+  const NEON_COLORS = {
+    primary: '#00f3ff', // Cyan
+    success: '#00ff41', // Lime
+    danger: '#ff0055',  // Neon Red
+    warning: '#ffee00', // Yellow
+    secondary: '#94a3b8',
+    purple: '#bd00ff',
+    pink: '#ff00ff'
+  };
+
+  if (transactions.length === 0) {
+    return (
+      <div className="glass-panel" style={{ padding: '3rem', textAlign: 'center', color: 'var(--secondary)' }}>
+        Aucune donnée disponible pour les graphiques.
+        <br />
+        <span style={{ fontSize: '0.9rem' }}>Ajoutez des transactions pour voir les graphiques.</span>
+      </div>
+    );
+  }
+
+  // Custom Tooltip for Neon Theme
+  const CustomTooltip = ({ active, payload, label, formatter }: any) => {
+    if (active && payload && payload.length) {
+      return (
+        <div style={{
+          background: 'rgba(10, 10, 15, 0.85)',
+          backdropFilter: 'blur(12px)',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          borderRadius: '12px',
+          padding: '1rem',
+          boxShadow: '0 0 20px rgba(0,0,0,0.5)',
+          color: '#fff'
+        }}>
+          <p style={{ fontWeight: 'bold', marginBottom: '0.5rem', fontSize: '0.9rem' }}>{label}</p>
+          {payload.map((entry: any, index: number) => (
+            <p key={index} style={{ color: entry.color || '#fff', fontSize: '0.85rem' }}>
+              {formatter ? formatter(entry.value, entry.name) : `${entry.name}: ${entry.value}`}
+            </p>
+          ))}
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div style={{ display: 'grid', gap: '2rem', marginBottom: '2rem' }}>
+      {/* GLOW FILTERS DEFINITION */}
+      <svg style={{ height: 0, width: 0, position: 'absolute' }}>
+        <defs>
+          <filter id="neonGlowPrimary" height="300%" width="300%" x="-75%" y="-75%">
+            <feMorphology operator="dilate" radius="1" in="SourceAlpha" result="thicken" />
+            <feGaussianBlur in="thicken" stdDeviation="4" result="blurred" />
+            <feFlood floodColor={NEON_COLORS.primary} result="glowColor" />
+            <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+            <feMerge>
+              <feMergeNode in="softGlow_colored" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="neonGlowSuccess" height="300%" width="300%" x="-75%" y="-75%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blurred" />
+            <feFlood floodColor={NEON_COLORS.success} result="glowColor" />
+            <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+            <feMerge>
+              <feMergeNode in="softGlow_colored" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+          <filter id="neonGlowDanger" height="300%" width="300%" x="-75%" y="-75%">
+            <feGaussianBlur in="SourceAlpha" stdDeviation="4" result="blurred" />
+            <feFlood floodColor={NEON_COLORS.danger} result="glowColor" />
+            <feComposite in="glowColor" in2="blurred" operator="in" result="softGlow_colored" />
+            <feMerge>
+              <feMergeNode in="softGlow_colored" />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
+        </defs>
+      </svg>
+
       {/* Graphique en ligne - Évolution du solde */}
       {balanceData.length > 0 && (
         <div className="glass-panel" style={{ padding: '1.5rem' }}>
-          <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--foreground)' }}>
+          <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem', color: 'var(--foreground)', textShadow: `0 0 10px ${NEON_COLORS.primary}40` }}>
             📈 Évolution du Solde
           </h3>
           <ResponsiveContainer width="100%" height={300}>
             <AreaChart data={balanceData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
               <defs>
                 <linearGradient id="colorSolde" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor={COLORS.primary} stopOpacity={0.8} />
-                  <stop offset="95%" stopColor={COLORS.primary} stopOpacity={0} />
+                  <stop offset="5%" stopColor={NEON_COLORS.primary} stopOpacity={0.4} />
+                  <stop offset="95%" stopColor={NEON_COLORS.primary} stopOpacity={0} />
                 </linearGradient>
               </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
+              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
               <XAxis
                 dataKey="date"
                 stroke="var(--secondary)"
@@ -136,23 +216,15 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
                 axisLine={false}
                 tickFormatter={(value) => `${value}€`}
               />
-              <Tooltip
-                contentStyle={{
-                  background: 'rgba(255, 255, 255, 0.8)',
-                  backdropFilter: 'blur(8px)',
-                  border: 'none',
-                  borderRadius: '12px',
-                  boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                  color: 'black'
-                }}
-                formatter={(value: number) => [`${value} €`, 'Solde']}
-              />
+              <Tooltip content={<CustomTooltip formatter={(value: number) => [`${value} €`, 'Solde']} />} />
               <Area
                 type="monotone"
                 dataKey="solde"
-                stroke={COLORS.primary}
+                stroke={NEON_COLORS.primary}
+                strokeWidth={3}
                 fillOpacity={1}
                 fill="url(#colorSolde)"
+                filter="url(#neonGlowPrimary)"
                 isAnimationActive={true}
               />
             </AreaChart>
@@ -177,23 +249,15 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
                   outerRadius={80}
                   paddingAngle={5}
                   dataKey="value"
+                  stroke="none"
                   isAnimationActive={true}
                 >
-                  {expenseByCategory.map((entry, index) => (
-                    <Cell key={`cell-${index}-${entry.name}`} fill={pieColors[index % pieColors.length]} stroke="none" />
-                  ))}
+                  {expenseByCategory.map((entry, index) => {
+                    const colors = [NEON_COLORS.primary, NEON_COLORS.success, NEON_COLORS.warning, NEON_COLORS.danger, NEON_COLORS.purple, NEON_COLORS.pink];
+                    return <Cell key={`cell-${index}`} fill={colors[index % colors.length]} />;
+                  })}
                 </Pie>
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    color: 'black'
-                  }}
-                  formatter={(value: number) => `${value.toFixed(2)} €`}
-                />
+                <Tooltip content={<CustomTooltip formatter={(value: number) => `${value.toFixed(2)} €`} />} />
               </PieChart>
             </ResponsiveContainer>
           </div>
@@ -208,16 +272,9 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
             <ResponsiveContainer width="100%" height={300}>
               <BarChart data={incomeVsExpense} margin={{ top: 5, right: 5, left: 5, bottom: 5 }}>
                 <defs>
-                  <linearGradient id="colorRevenue" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.success} stopOpacity={1} />
-                    <stop offset="100%" stopColor={COLORS.success} stopOpacity={0.6} />
-                  </linearGradient>
-                  <linearGradient id="colorExpense" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="0%" stopColor={COLORS.danger} stopOpacity={1} />
-                    <stop offset="100%" stopColor={COLORS.danger} stopOpacity={0.6} />
-                  </linearGradient>
+                  {/* Gradients reuse logic if needed, but solid neon is punchier for bars */}
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--card-border)" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" vertical={false} />
                 <XAxis width={0} tick={false} axisLine={false} />
                 <YAxis
                   stroke="var(--secondary)"
@@ -225,26 +282,13 @@ export default function FinancialCharts({ transactions }: FinancialChartsProps) 
                   tickLine={false}
                   axisLine={false}
                 />
-                <Tooltip
-                  contentStyle={{
-                    background: 'rgba(255, 255, 255, 0.8)',
-                    backdropFilter: 'blur(8px)',
-                    border: 'none',
-                    borderRadius: '12px',
-                    boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                    color: 'black'
-                  }}
-                  cursor={{ fill: 'transparent' }}
-                />
-                <Bar
-                  dataKey="montant"
-                  radius={[8, 8, 8, 8]}
-                  isAnimationActive={true}
-                >
+                <Tooltip content={<CustomTooltip />} cursor={{ fill: 'rgba(255,255,255,0.05)' }} />
+                <Bar dataKey="montant" radius={[8, 8, 8, 8]} isAnimationActive={true}>
                   {incomeVsExpense.map((entry, index) => (
                     <Cell
-                      key={`cell-${index}-${entry.name}`}
-                      fill={entry.name === 'Revenus' ? 'url(#colorRevenue)' : 'url(#colorExpense)'}
+                      key={`cell-${index}`}
+                      fill={entry.name === 'Revenus' ? NEON_COLORS.success : NEON_COLORS.danger}
+                      filter={entry.name === 'Revenus' ? "url(#neonGlowSuccess)" : "url(#neonGlowDanger)"}
                     />
                   ))}
                 </Bar>

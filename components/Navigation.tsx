@@ -8,6 +8,7 @@ import { useTheme } from '@/context/ThemeContext';
 import { usePathname } from 'next/navigation';
 import EnhancedGlobalSearch from './EnhancedGlobalSearch';
 import InstallPrompt from './InstallPrompt';
+import MagneticButton from './MagneticButton';
 
 export default function Navigation() {
     const { user, logout } = useAuth();
@@ -142,6 +143,7 @@ export default function Navigation() {
                 </Link>
 
                 {/* Desktop Navigation */}
+
                 <div style={{
                     display: 'flex',
                     gap: '0.5rem',
@@ -183,19 +185,21 @@ export default function Navigation() {
                                 </button>
                             </div>
                         ) : null}
-                        <button
-                            onClick={() => setShowSearch(!showSearch)}
-                            className="btn btn-secondary"
-                            style={{
-                                fontSize: '1rem',
-                                padding: '0.5rem 0.75rem',
-                                minWidth: 'auto'
-                            }}
-                            aria-label="Recherche"
-                            title="Recherche (Ctrl+K)"
-                        >
-                            🔍
-                        </button>
+                        <MagneticButton>
+                            <button
+                                onClick={() => setShowSearch(!showSearch)}
+                                className="btn btn-secondary"
+                                style={{
+                                    fontSize: '1rem',
+                                    padding: '0.5rem 0.75rem',
+                                    minWidth: 'auto'
+                                }}
+                                aria-label="Recherche"
+                                title="Recherche (Ctrl+K)"
+                            >
+                                🔍
+                            </button>
+                        </MagneticButton>
                     </div>
 
                     {/* Liens de navigation - Icônes uniquement sur desktop */}
@@ -207,63 +211,68 @@ export default function Navigation() {
                         className="desktop-nav"
                     >
                         {navItems.map((item) => (
-                            <Link
-                                key={item.href}
-                                href={item.href}
-                                className="nav-link"
-                                aria-label={item.label}
-                                title={item.label}
-                                style={{
-                                    padding: '0.5rem 0.75rem',
-                                    fontSize: '1.1rem',
-                                    background: isActive(item.href) ? 'var(--primary)' : 'transparent',
-                                    opacity: isActive(item.href) ? 1 : 0.8,
-                                    borderRadius: 'var(--radius)',
-                                    transition: 'all 0.2s ease',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    minWidth: '2.5rem',
-                                    textDecoration: 'none'
-                                }}
-                            >
-                                {item.icon}
-                            </Link>
+                            <MagneticButton key={item.href} strength={15}>
+                                <Link
+                                    href={item.href}
+                                    className="nav-link"
+                                    aria-label={item.label}
+                                    title={item.label}
+                                    style={{
+                                        padding: '0.5rem 0.75rem',
+                                        fontSize: '1.1rem',
+                                        background: isActive(item.href) ? 'var(--primary)' : 'transparent',
+                                        opacity: isActive(item.href) ? 1 : 0.8,
+                                        borderRadius: 'var(--radius)',
+                                        transition: 'all 0.2s ease',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        minWidth: '2.5rem',
+                                        textDecoration: 'none'
+                                    }}
+                                >
+                                    {item.icon}
+                                </Link>
+                            </MagneticButton>
                         ))}
                     </div>
 
                     {/* Actions rapides */}
                     <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                        <button
-                            onClick={toggleTheme}
-                            className="btn btn-secondary"
-                            style={{
-                                fontSize: '1rem',
-                                padding: '0.5rem 0.75rem',
-                                minWidth: 'auto'
-                            }}
-                            aria-label={`Basculer vers le thème ${theme === 'dark' ? 'clair' : 'sombre'}`}
-                            title={`Thème ${theme === 'dark' ? 'sombre' : 'clair'}`}
-                        >
-                            {theme === 'dark' ? '☀️' : '🌙'}
-                        </button>
+                        <MagneticButton>
+                            <button
+                                onClick={toggleTheme}
+                                className="btn btn-secondary"
+                                style={{
+                                    fontSize: '1rem',
+                                    padding: '0.5rem 0.75rem',
+                                    minWidth: 'auto'
+                                }}
+                                aria-label={`Basculer vers le thème ${theme === 'dark' ? 'clair' : 'sombre'}`}
+                                title={`Thème ${theme === 'dark' ? 'sombre' : 'clair'}`}
+                            >
+                                {theme === 'dark' ? '☀️' : '🌙'}
+                            </button>
+                        </MagneticButton>
 
                         {/* Menu hamburger pour mobile */}
-                        <button
-                            className="menu-toggle btn btn-secondary"
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-                            style={{
-                                fontSize: '1.2rem',
-                                padding: '0.5rem 0.75rem',
-                                minWidth: 'auto',
-                                display: 'flex',
-                                alignItems: 'center'
-                            }}
-                            aria-label="Menu"
-                            aria-expanded={isMobileMenuOpen}
-                        >
-                            ☰
-                        </button>
+                        <MagneticButton>
+                            <button
+                                className="menu-toggle btn btn-secondary"
+                                onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+                                style={{
+                                    fontSize: '1.2rem',
+                                    padding: '0.5rem 0.75rem',
+                                    minWidth: 'auto',
+                                    display: 'flex',
+                                    alignItems: 'center'
+                                }}
+                                aria-label="Menu"
+                                aria-expanded={isMobileMenuOpen}
+                            >
+                                ☰
+                            </button>
+                        </MagneticButton>
                     </div>
                 </div>
             </nav>
