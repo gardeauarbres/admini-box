@@ -44,6 +44,7 @@ import PageTransition from "@/components/PageTransition";
 import OnboardingOverlay from "@/components/OnboardingOverlay";
 import VoiceManager from "@/components/VoiceManager";
 import RealtimeManager from "@/components/RealtimeManager";
+import GamifiedCookies from "@/components/GamifiedCookies";
 
 export default function RootLayout({
   children,
@@ -68,7 +69,9 @@ export default function RootLayout({
                       <AutoBackup />
                       <OnboardingOverlay />
                       <RealtimeManager />
+                      <RealtimeManager />
                       <VoiceManager />
+                      <GamifiedCookies />
                       <div className="layout-wrapper">
                         <Navigation />
                         <main className="container">

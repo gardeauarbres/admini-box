@@ -5,18 +5,42 @@ import FinanceTable from '@/components/FinanceTable';
 import FinancialCharts from '@/components/FinancialCharts';
 import SmartScanner from '@/components/SmartScanner';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import { useTransactions } from '@/lib/queries';
+import { calculateIncome, calculateExpense } from '@/lib/utils';
 import { useAuth } from '@/context/AuthContext';
+import { useTransactions } from '@/lib/queries';
+import { useSearchParams } from 'next/navigation';
 
 export default function FinancePage() {
     const { user } = useAuth();
     const { data: transactions = [] } = useTransactions(user?.$id || null);
-    const [stats, setStats] = useState({ income: 0, expense: 0 });
 
-    // Utiliser useCallback pour éviter les re-renders infinis
-    const handleStatsUpdate = useCallback((newStats: { income: number; expense: number }) => {
-        setStats(newStats);
-    }, []);
+    // URL Action Handling
+    const searchParams = useSearchParams();
+
+    // State for Smart Scanner interaction
+    const [showTransactionForm, setShowTransactionForm] = useState(false);
+    const [transactionInitialData, setTransactionInitialData] = useState<any>(null);
+
+    React.useEffect(() => {
+        const action = searchParams.get('action');
+        if (action === 'add') {
+            setShowTransactionForm(true);
+        } else if (action === 'scan') {
+            // Smooth scroll to scanner
+            const scannerElement = document.getElementById('smart-scanner');
+            if (scannerElement) {
+                scannerElement.scrollIntoView({ behavior: 'smooth' });
+                scannerElement.classList.add('highlight-pulse'); // We'll need to define this style or just rely on scroll
+                setTimeout(() => scannerElement.classList.remove('highlight-pulse'), 2000);
+            }
+        }
+    }, [searchParams]);
+    const stats = React.useMemo(() => {
+        return {
+            income: calculateIncome(transactions),
+            expense: calculateExpense(transactions)
+        };
+    }, [transactions]);
 
     const [budget, setBudget] = useState(0);
     const [isEditingBudget, setIsEditingBudget] = useState(false);
@@ -35,9 +59,7 @@ export default function FinancePage() {
     const [analysisResult, setAnalysisResult] = useState<string | null>(null);
     const [isAnalyzing, setIsAnalyzing] = useState(false);
 
-    // State for Smart Scanner interaction
-    const [showTransactionForm, setShowTransactionForm] = useState(false);
-    const [transactionInitialData, setTransactionInitialData] = useState<any>(null);
+
 
     const handleScanComplete = useCallback((data: { amount?: number, date?: string, merchant?: string }) => {
         setTransactionInitialData({
@@ -165,7 +187,9 @@ export default function FinancePage() {
                 </div>
 
                 {/* Smart Scanner Section */}
-                <SmartScanner onScanComplete={handleScanComplete} />
+                <div id="smart-scanner">
+                    <SmartScanner onScanComplete={handleScanComplete} />
+                </div>
 
                 {analysisResult && (
                     <div className="glass-panel" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent)' }}>
@@ -180,9 +204,7 @@ export default function FinancePage() {
 
 
 
-                {/* Table des transactions */}
                 <FinanceTable
-                    onStatsUpdate={handleStatsUpdate}
                     showForm={showTransactionForm}
                     onCloseForm={() => setShowTransactionForm(false)}
                     initialData={transactionInitialData}

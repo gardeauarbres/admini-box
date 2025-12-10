@@ -21,12 +21,17 @@ export default function VoiceManager() {
         } else if (lowerCmd.includes('compte') || lowerCmd.includes('profil')) {
             router.push('/profile');
             showToast('Navigation vers Profil', 'success');
-        } else if (lowerCmd.includes('ajoute') && (lowerCmd.includes('dépense') || lowerCmd.includes('transaction'))) {
-            router.push('/finance');
-            // In a real app, we would pass a query param or context to open the modal immediately
-            showToast('Ouverture de la section finances...', 'info');
+        } else if ((lowerCmd.includes('ajoute') || lowerCmd.includes('créer')) && (lowerCmd.includes('dépense') || lowerCmd.includes('transaction'))) {
+            router.push('/finance?action=add');
+            showToast('Ouverture du formulaire de dépense...', 'success');
+        } else if (lowerCmd.includes('scan') || lowerCmd.includes('reçu') || lowerCmd.includes('facture')) {
+            router.push('/finance?action=scan');
+            showToast('Activation du scanner...', 'success');
+        } else if (lowerCmd.includes('document') || lowerCmd.includes('fichier')) {
+            router.push('/?tab=documents'); // Assuming dashboard handles tabs or just scrolling
+            showToast('Accès aux documents', 'success');
         } else {
-            showToast('Commande non reconnue (Essayez: "Accueil", "Finance", "Profil")', 'error');
+            showToast('Commande non reconnue', 'error');
         }
     };
 

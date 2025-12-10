@@ -17,13 +17,12 @@ import { exportTransactionsToCSV } from '@/lib/export';
 import type { TransactionFormData } from '@/lib/validations';
 
 interface FinanceTableProps {
-    onStatsUpdate?: (stats: { income: number; expense: number }) => void;
     showForm?: boolean;
     onCloseForm?: () => void;
     initialData?: Partial<TransactionFormData>;
 }
 
-const FinanceTable: React.FC<FinanceTableProps> = ({ onStatsUpdate, showForm: externalShowForm, onCloseForm, initialData }) => {
+const FinanceTable: React.FC<FinanceTableProps> = ({ showForm: externalShowForm, onCloseForm, initialData }) => {
     const { user } = useAuth();
     const { showToast } = useToast();
 
@@ -46,26 +45,10 @@ const FinanceTable: React.FC<FinanceTableProps> = ({ onStatsUpdate, showForm: ex
     const createMutation = useCreateTransaction();
     const deleteMutation = useDeleteTransaction();
 
-    // Calcul des stats optimisé avec useMemo
-    const stats = useMemo(() => {
-        if (transactions.length === 0) return { income: 0, expense: 0 };
-        return {
-            income: calculateIncome(transactions),
-            expense: calculateExpense(transactions)
-        };
-    }, [transactions]);
-
-    // Mise à jour des stats avec useRef pour éviter les boucles infinies
-    const onStatsUpdateRef = useRef(onStatsUpdate);
-    useEffect(() => {
-        onStatsUpdateRef.current = onStatsUpdate;
-    }, [onStatsUpdate]);
-
-    useEffect(() => {
-        if (onStatsUpdateRef.current) {
-            onStatsUpdateRef.current(stats);
-        }
-    }, [stats]);
+    // Stats are now calculated in parent, but we keep this if needed for internal logic?
+    // Actually, we don't need to calculate stats here if we don't pass them up.
+    // However, looking at the code, stats were ONLY used to pass up.
+    // So we can remove the memo and effects completely.
 
     // Filtrage et recherche optimisé
     const filteredTransactions = useMemo(() => {
