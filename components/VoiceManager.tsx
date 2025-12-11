@@ -48,7 +48,36 @@ export default function VoiceManager() {
         {
             keys: ['dépense', 'achat', 'transaction', 'ajouter', 'payer', 'facture', 'frais'],
             path: '/finance?action=add',
-            msg: "Nouveau formulaire de dépense"
+            msg: "Nouveau formulaire de dépense",
+            action: (cmd: string, router: Router) => {
+                // Regex pour extraire le montant (ex: "50 euros", "50€", "50")
+                const amountMatch = cmd.match(/(\d+(?:[.,]\d+)?)\s*(?:euros?|€)?/i);
+
+                // Regex pour extraire le libellé après "pour" ou "chez"
+                const labelMatch = cmd.match(/(?:pour|chez|à)\s+(?:le\s+|la\s+|l'|les\s+)?([a-z0-9àâäéèêëîïôöùûüç\s]+)/i);
+
+                let url = '/finance?action=add';
+                let feedback = "Nouveau formulaire de dépense";
+
+                if (amountMatch) {
+                    const amount = amountMatch[1].replace(',', '.');
+                    url += `&amount=${amount}`;
+                    feedback = `Dépense de ${amount}€ détectée`;
+                }
+
+                if (labelMatch && labelMatch[1]) {
+                    // Nettoyage rapide du libellé
+                    const label = labelMatch[1].trim();
+                    // On ne prend pas le libellé s'il est trop générique ou fait partie du montant
+                    if (label.length > 2 && !label.match(/^\d/)) {
+                        url += `&label=${encodeURIComponent(label)}`;
+                        feedback += ` pour ${label}`;
+                    }
+                }
+
+                router.push(url);
+                return feedback;
+            }
         },
         {
             keys: ['analyse', 'statistique', 'graphique', 'chart', 'camembert', 'courbe', 'évolution'],
@@ -131,22 +160,49 @@ export default function VoiceManager() {
         const lowerCmd = command.toLowerCase();
         console.log("Voice Command Received:", lowerCmd);
 
-        // Recherche floue
-        const results = fuse.search(lowerCmd);
+        // Stratégie : Découper la phrase en mots et chercher chaque mot
+        // Cela permet d'ignorer les mots de liaison ("aller", "à", "la", "montre", "moi")
+        // et de se concentrer sur les mots-clés ("banque", "profil", "admin")
 
-        if (results.length > 0) {
-            // Prendre le meilleur résultat
-            const match = results[0].item;
+        // Liste de mots vides (stop words) à ignorer complètement pour réduire le bruit
+        const STOP_WORDS = ['je', 'tu', 'il', 'nous', 'vous', 'ils', 'mon', 'ma', 'mes', 'le', 'la', 'les', 'un', 'une', 'des', 's\'il', 'te', 'plait', 'plaît', 'svp', 'veuillez', 'aller', 'montre', 'ouvre', 'vers', 'dans', 'sur', 'pour', 'chez', 'veut', 'veux', 'voudrais', 'aimerais', 'peux'];
 
-            console.log(`Matched: ${match.msg} (Score: ${results[0].score})`);
+        const tokens = lowerCmd.split(/\s+/)
+            .filter(t => t.length > 2) // Ignore les mots très courts
+            .filter(t => !STOP_WORDS.includes(t)); // Filtre les mots vides
 
-            if (match.action) {
-                // Passer la commande brute pour l'extraction de paramètres
-                const feedback = match.action(lowerCmd, router);
+        let bestMatch = null;
+        let bestScore = 1; // Score Fuse : 0 = parfait, 1 = nul
+
+        for (const token of tokens) {
+            const results = fuse.search(token);
+            if (results.length > 0) {
+                const topResult = results[0];
+                if (topResult.score !== undefined && topResult.score < bestScore) {
+                    bestScore = topResult.score;
+                    bestMatch = topResult.item;
+                }
+            }
+        }
+
+        // Si aucun mot individuel ne matche, on tente la phrase entière (au cas où "mentions légales")
+        if (!bestMatch) {
+            const fullResults = fuse.search(lowerCmd);
+            if (fullResults.length > 0) {
+                bestMatch = fullResults[0].item;
+                bestScore = fullResults[0].score || 1;
+            }
+        }
+
+        if (bestMatch && bestScore < 0.5) {
+            console.log(`Matched: ${bestMatch.msg} (Score: ${bestScore})`);
+
+            if (bestMatch.action) {
+                const feedback = bestMatch.action(lowerCmd, router);
                 showToast(feedback, 'success');
-            } else if (match.path) {
-                router.push(match.path);
-                showToast(match.msg || 'Navigation...', 'success');
+            } else if (bestMatch.path) {
+                router.push(bestMatch.path);
+                showToast(bestMatch.msg || 'Navigation...', 'success');
             }
         } else {
             console.warn("No match found for:", lowerCmd);

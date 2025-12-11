@@ -157,6 +157,7 @@ export default function FinancePage() {
                     <FinanceURLHandler
                         onOpenAddForm={() => setShowTransactionForm(true)}
                         onHighlightScanner={handleHighlightScanner}
+                        onPrefillData={setTransactionInitialData}
                     />
                 </Suspense>
                 <header style={{ marginBottom: '3rem' }}>
